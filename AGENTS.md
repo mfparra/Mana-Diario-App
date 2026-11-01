@@ -119,12 +119,15 @@ mana-diario-app/
 - Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD`
 - Bíblia: `cd tools/biblia && uv run python importar_blivre.py` (padrão: `fonte/porbr2018_usfm.zip` → `build/blivre.sqlite`);
   testes `uv run pytest`; lint `uv run ruff check . && uv run ruff format --check .`;
-  conferir/atualizar a fonte: `uv run python baixar_fonte.py`. Pacote `blivre` (parser de referências) é reutilizado pelo servidor
+  conferir/atualizar a fonte: `uv run python baixar_fonte.py`. Referências cruzadas (só servidor):
+  `uv run python importar_referencias.py` → `build/crossrefs.sqlite`. Pacote `blivre` (parser de referências) é reutilizado pelo servidor
   como dependência de caminho **não editável**: depois de mudar `tools/biblia/blivre`, rode `cd server && uv sync --reinstall-package blivre`.
 - App: `cd android && ./gradlew assembleDebug testDebugUnitTest lint`
 - llm-server (compartilhado): `/home/marcos/OneDriveLocalSync/LinguagensProgramacao/Android/CacaPalavras2/llm-server`
   — contêiner `llm` (llama.cpp), `curl 127.0.0.1:8081/health`; o compose do Maná entra na rede `llm-net`.
-- Testar outro provedor LLM: trocar só as variáveis `LLM_*` do `infra/.env` e rodar `uv run python -m app.cli llm-check`.
+- Testar outro provedor LLM: copiar um perfil de `infra/llm-profiles/` para as `LLM_*` do `infra/.env` e rodar
+  `distrobox-host-exec podman compose -f infra/compose.yaml run --rm --no-deps api python -m app.cli llm-check`
+  (detalhes e execução no host em `docs/LLM_SERVER.md` §5). LLM de teste isolada: `infra/llm-teste/`.
 
 (Ajuste esta seção quando os comandos reais existirem — ela deve refletir a realidade.)
 

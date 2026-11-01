@@ -79,7 +79,7 @@ Dep.: 1.x, 2.x, 0.2
 - [ ] **3.3 Citações curadas** (depende de P8/L5): carregar o acervo curado próprio em `server/data/quotes.*`;
   seleção por tags e janela de repetição.
   Aceite: teste de seleção determinística por data; nenhuma citação sem autor.
-- [ ] **3.4 Candidatos de leitura complementar** (P9): fonte de referências cruzadas (OpenBible.info, conferir licença).
+- [x] **3.4 Candidatos de leitura complementar** (P9): fonte de referências cruzadas (OpenBible.info, conferir licença).
   Aceite: para 50 versículos do plano, ≥ 3 candidatos válidos cada.
 - [ ] **3.5 Adaptador LLM agnóstico**: `LlmClient` + `OpenAICompatibleClient` + `FakeLlmClient`, configurado só por
   `LLM_*` (`LLM_SERVER.md` §3–4): modo JSON configurável, `LLM_EXTRA_BODY`, remoção de raciocínio, extração de JSON,
@@ -169,7 +169,8 @@ Dep.: 5.5
 - [ ] **7.5 Ajustes de leitura**: fonte, tema, espaçamento — compartilhados com a tela Hoje.
 - [ ] **7.7 Notas e títulos** (surgiu na 1.1): exibir títulos de salmos (`superscriptions`) antes do v. 1 e notas de
   rodapé (`footnotes`, incl. `quote_source`) como marcador tocável no versículo. Aceite: Gn 3.5 mostra a nota; Sl 3 mostra o título.
-- [ ] **7.8 Tela "Sobre"**: atribuição da BLIVRE lida de `metadata.attribution`; compartilhamentos curtos usam a sigla "BLIVRE"
+- [ ] **7.8 Tela "Sobre"**: atribuição da BLIVRE lida de `metadata.attribution` e crédito "Referências cruzadas: OpenBible.info (CC BY)";
+  compartilhamentos curtos usam a sigla "BLIVRE"
   (`tools/biblia/LICENCA_BLIVRE.md`).
 - [ ] **7.6 Desempenho**: abrir Salmos 119 sem travar (LazyColumn, paginação por capítulo). Aceite: sem jank perceptível em aparelho médio.
 

@@ -24,7 +24,7 @@ arquivo ou dado é herdado do site.
 | P6 | Datas especiais: Páscoa e móveis (ex.: Corpus Christi), Natal, Dia das Mães, Dia dos Pais | 🟡 | Calendário próprio: tabela de `CONTEUDO_E_LLM.md` §2. Colisões: litúrgicas antes das civis; véspera de Natal fora (2026-10-31) |
 | P7 | Acervo de versículos que dure mais de um ano | 🟡 | Acervo próprio em `server/data/verse_plan.*` (≥ 366 referências validadas na BLIVRE), revisado pelo Marcos na tarefa 3.2 |
 | P8 | **"Pequena frase"** = citação curada (caixa escura, com autor) | ❓ | Sem o banco do site, é preciso montar um acervo curado do zero (ver L5). Alternativa: frase-síntese gerada pela LLM, sem autor. Definir até a Fase 3 |
-| P9 | **Versículo complementar**: servidor oferece candidatos (referências cruzadas) e a LLM escolhe um; servidor valida | 🟡 | Fonte de candidatos sugerida: referências cruzadas do OpenBible.info (CC BY) — confirmar licença na tarefa 3.4 |
+| P9 | **Versículo complementar**: servidor oferece candidatos (referências cruzadas) e a LLM escolhe um; servidor valida | 🟡 | Fonte: referências cruzadas do **OpenBible.info**, licença **CC BY** confirmada em 2026-10-31 (`tools/biblia/LICENCA_REFERENCIAS.md`). Até 8 candidatos, votos ≥ 3, máx. 3 por livro, sem sobrepor a passagem-base |
 | P10 | Seções extras geradas: "aplicação prática" e "oração" curta | 🟡 | |
 | P11 | Funções extras do app: histórico, favoritos, compartilhar como imagem, notificação diária em horário escolhido | 🟡 | Widget, áudio (TTS) e planos de leitura ficam para a fase futura |
 | P12 | **Espaço de anotações pessoais em cada devocional do dia** | ✅ | 2026-10-31 — detalhes na seção "Anotações" |

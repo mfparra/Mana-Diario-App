@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     database_url: str | None = None
     blivre_sqlite_path: str = "/data/blivre.sqlite"
+    crossrefs_sqlite_path: str = "/data/crossrefs.sqlite"
 
     admin_token: str | None = None
     jwt_secret: str | None = None

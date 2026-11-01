@@ -40,6 +40,8 @@ Um repositório com `android/`, `server/`, `tools/` e `infra/`. Motivos: o contr
 - `app/bible/` — `BibleRepository` (leitura somente leitura do `blivre.sqlite`: `exists`, `get_passage`, `get_text`);
   o parser de referências vem do pacote `blivre` (`tools/biblia`). Referências guardadas no banco usam a forma
   canônica USFM (`JHN 3:16`, `1CO 13:4-7`), via `format_canonical`.
+  `CrossReferenceRepository` (`app/bible/crossrefs.py`) lê `crossrefs.sqlite` (OpenBible.info, só no servidor —
+  não vai para o app) e devolve os candidatos de leitura complementar.
 - `worker/` — agendador (APScheduler ou laço simples) que chama `GenerationService`.
 
 ### Tabelas principais (PostgreSQL)

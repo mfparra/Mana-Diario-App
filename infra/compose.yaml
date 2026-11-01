@@ -1,7 +1,7 @@
 # Stack do servidor do Maná Diário (podman compose). Ver docs/ARQUITETURA.md §6.
 #
 #   cp infra/.env.example infra/.env        # e preencha
-#   (cd tools/biblia && uv run python importar_blivre.py)   # gera build/blivre.sqlite
+#   (cd tools/biblia && uv run python importar_blivre.py && uv run python importar_referencias.py)
 #   distrobox-host-exec podman compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build
 #   curl 127.0.0.1:8000/v1/health
 #
@@ -20,8 +20,10 @@ x-app: &app
   environment:
     DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     BLIVRE_SQLITE_PATH: /data/blivre.sqlite
+    CROSSREFS_SQLITE_PATH: /data/crossrefs.sqlite
   volumes:
     - ../tools/biblia/build/blivre.sqlite:/data/blivre.sqlite:ro,z
+    - ../tools/biblia/build/crossrefs.sqlite:/data/crossrefs.sqlite:ro,z
   networks: [mana-net, llm-net]
   read_only: true
   tmpfs: [/tmp]
