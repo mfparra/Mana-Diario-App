@@ -62,7 +62,8 @@ Dep.: 0.4
   montado somente leitura; `api`/`worker` na rede externa `llm-net` (`LLM_BASE_URL=http://llm:8081/v1`);
   todas as variáveis `LLM_*` de `LLM_SERVER.md` §4 no `.env.example`. Documentar o comando que funciona no distrobox.
   Aceite: stack sobe com um comando; health mostra `db: ok` e `llm: ok`.
-- [ ] **2.4 Módulo Bíblia no servidor**: leitura do `blivre.sqlite`, `get_text(ref)`, `exists(ref)`, parser da 1.3.
+- [ ] **2.4 Módulo Bíblia no servidor**: leitura do `blivre.sqlite`, `get_text(ref)`, `exists(ref)`, parser da 1.3
+  (pacote `blivre` de `tools/biblia` como dependência de caminho no `uv`; não duplicar o parser).
   Aceite: testes de leitura de versículo, intervalo e capítulo inteiro.
 - [ ] **2.5 Erros, logs e middleware**: formato de erro de `API.md`, logs JSON sem PII, request-id, CORS desligado.
 
@@ -162,10 +163,14 @@ Dep.: 5.5
 - [ ] **7.2 Abrir por referência** com rolagem e destaque temporário + "Voltar ao estudo".
   Aceite: refs de versículo, intervalo e capítulo inteiro funcionam a partir do estudo.
 - [ ] **7.3 Busca** (FTS4) com resultados por livro e destaque do termo. Aceite: busca sem acento encontra texto acentuado
-  (normalização na indexação).
+  (já resolvido no banco: `unicode61 remove_diacritics=1` — normalizar também o termo digitado).
 - [ ] **7.4 Destaques, marcadores, copiar/compartilhar** versículos (com referência + "BLIVRE") e
   **"Anotar"** (insere a referência na anotação do devocional do dia).
 - [ ] **7.5 Ajustes de leitura**: fonte, tema, espaçamento — compartilhados com a tela Hoje.
+- [ ] **7.7 Notas e títulos** (surgiu na 1.1): exibir títulos de salmos (`superscriptions`) antes do v. 1 e notas de
+  rodapé (`footnotes`, incl. `quote_source`) como marcador tocável no versículo. Aceite: Gn 3.5 mostra a nota; Sl 3 mostra o título.
+- [ ] **7.8 Tela "Sobre"**: atribuição da BLIVRE lida de `metadata.attribution`; compartilhamentos curtos usam a sigla "BLIVRE"
+  (`tools/biblia/LICENCA_BLIVRE.md`).
 - [ ] **7.6 Desempenho**: abrir Salmos 119 sem travar (LazyColumn, paginação por capítulo). Aceite: sem jank perceptível em aparelho médio.
 
 ## Fase 8 — Monetização (AdMob + assinatura)
