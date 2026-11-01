@@ -48,7 +48,7 @@ Um repositório com `android/`, `server/`, `tools/` e `infra/`. Motivos: o contr
 
 | Tabela | Campos-chave |
 |---|---|
-| `users` | id (uuid), google_sub (único), email, name, photo_url, created_at, deleted_at |
+| `users` | id (uuid), google_sub (único), email, name, photo_url, preferences (jsonb), created_at, updated_at, deleted_at |
 | `refresh_tokens` | id, user_id, family_id (detecção de reuso), token_hash, expires_at, revoked_at, replaced_by_id, device_label |
 | `studies` | date (PK), status (`draft`/`published`/`failed`), payload (jsonb), etag, schema_version, verse_ref, special_day, quote_id, provider, model, prompt_version, is_fallback, generated_at, published_at |
 | `generation_jobs` | id, kind (`daily`/`personal`), date, user_id?, status (`pending`/`running`/`done`/`failed`), priority, attempts, last_error, created_at, updated_at |

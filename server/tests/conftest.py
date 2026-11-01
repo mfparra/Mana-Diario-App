@@ -70,3 +70,53 @@ def make_google_token(google_keys):
         return jwt.encode(claims, key, algorithm="RS256", headers={"kid": "k1"})
 
     return make
+
+
+@pytest.fixture
+async def api_db(migrated_db_url, google_keys):
+    """(cliente HTTP, sessionmaker) com banco real, Google simulado e LLM falsa."""
+    import httpx
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    from app.api.v1.auth import get_google_verifier
+    from app.core.config import Settings, get_settings
+    from app.db.session import get_session
+    from app.main import create_app
+    from app.services.google_id import GoogleIdTokenVerifier
+
+    engine = create_async_engine(migrated_db_url)
+    maker = async_sessionmaker(engine, expire_on_commit=False)
+
+    async def session_override():
+        async with maker() as s:
+            yield s
+
+    app = create_app()
+    public = google_keys[0].public_key()
+    settings = Settings(jwt_secret=JWT_SECRET, google_web_client_id=GOOGLE_CLIENT_ID, llm_provider="fake")
+    app.dependency_overrides[get_settings] = lambda: settings
+    app.dependency_overrides[get_session] = session_override
+    app.dependency_overrides[get_google_verifier] = lambda: GoogleIdTokenVerifier(
+        GOOGLE_CLIENT_ID, lambda t: public
+    )
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        c.app = app
+        yield c, maker
+    await engine.dispose()
+
+
+@pytest.fixture
+def login(api_db, make_google_token):
+    """Faz login de um usuário novo e devolve (headers de auth, corpo do login)."""
+    import uuid
+
+    async def do(sub: str | None = None):
+        client, _ = api_db
+        r = await client.post(
+            "/v1/auth/google", json={"id_token": make_google_token(sub=sub or f"s-{uuid.uuid4()}")}
+        )
+        assert r.status_code == 200, r.text
+        body = r.json()
+        return {"Authorization": f"Bearer {body['access_token']}"}, body
+
+    return do

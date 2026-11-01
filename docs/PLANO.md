@@ -106,12 +106,13 @@ Dep.: 2.x (3.x para dados reais)
 - [x] **4.1 `POST /auth/google`**: valida ID token (`google-auth`), cria/atualiza usuário, emite tokens.
   Aceite: testes com tokens forjados/expirados/`aud` errado rejeitados.
 - [x] **4.2 Refresh rotativo + logout** com detecção de reuso. Aceite: testes de rotação e reuso.
-- [ ] **4.3 `/me`** (GET, PATCH, DELETE, export). Aceite: exclusão apaga todas as tabelas relacionadas.
+- [x] **4.3 `/me`** (GET, PATCH, DELETE, export). Aceite: exclusão apaga todas as tabelas relacionadas.
 - [ ] **4.4 Estudos**: `/studies/today`, `/studies/{date}`, `/studies?from&to` com ETag e regra de data futura.
   Aceite: testes de 304, 404, 422; payload igual ao exemplo de `API.md`.
 - [ ] **4.5 Anotações**: `GET /notes?updated_since`, `GET/PUT/DELETE /notes/{date}` com criptografia de campo,
   versão otimista (409 com versão do servidor) e tombstones. Aceite: testes de criar, editar, conflito, excluir,
-  pull incremental; banco guarda só bytes cifrados; export e exclusão de conta incluem anotações.
+  pull incremental; banco guarda só bytes cifrados; export e exclusão de conta incluem anotações
+  (o export da 4.3 hoje só traz metadados das notas: incluir o texto decifrado).
 - [ ] **4.6 Rate limiting** conforme `API.md`.
 - [ ] **4.7 Contrato**: exportar `openapi.json` para `docs/` e conferir com `API.md`.
 

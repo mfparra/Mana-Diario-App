@@ -53,10 +53,14 @@ Endpoints protegidos sem `Authorization: Bearer <access>` válido → 401 `unaut
 
 ## Usuário
 
-- `GET /me` → `user` + `preferences` + `subscription` (resumo).
-- `PATCH /me` → atualiza `preferences` (ex.: `notification_time: "07:00"`, `timezone`).
-- `DELETE /me` → exclusão da conta e de todos os dados (LGPD). 202; processamento imediato ou em até 24 h.
-- `GET /me/export` → JSON com todos os dados do usuário, **incluindo anotações** (LGPD).
+- `GET /me` → `{ "user": {id, name, email, photo_url, is_premium}, "preferences": {...}, "subscription": {is_premium, status, expires_at} }`.
+- `PATCH /me` → `{ "preferences": { "notification_time": "06:30", "notifications_enabled": true, "timezone": "America/Sao_Paulo" } }`
+  (campos opcionais, mesclados). `notification_time` em `HH:MM`; `timezone` IANA válido; campo desconhecido → 422.
+  Padrões: `07:00`, `true`, `America/Sao_Paulo`.
+- `DELETE /me` → 202. Exclusão **imediata** do usuário e, em cascata, de todos os dados (sessões, anotações, perfil,
+  "Para você", assinaturas, jobs). Access e refresh tokens deixam de valer na hora.
+- `GET /me/export` → JSON (`Content-Disposition: attachment`) com `user`, `preferences`, `sessions` (aparelhos, sem
+  tokens), `subscriptions`, `personal_studies`, `notes` e `profile`. O texto das anotações entra na 4.5 e o do perfil na 9.1.
 
 ## Estudos
 

@@ -63,6 +63,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(320), nullable=False)
     name: Mapped[str | None] = mapped_column(String(200))
     photo_url: Mapped[str | None] = mapped_column(Text)
+    preferences: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, server_default="{}")
     created_at: Mapped[dt.datetime] = _now()
     updated_at: Mapped[dt.datetime] = _now()
     deleted_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
