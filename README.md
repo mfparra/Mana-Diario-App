@@ -7,4 +7,5 @@ com leitor bíblico offline, anotações em cada devocional, login Google, AdMob
 - Plano de execução: [`docs/PLANO.md`](docs/PLANO.md)
 - Decisões e pendências: [`docs/DECISOES.md`](docs/DECISOES.md)
 
-Estado atual: **Fase 1 concluída**: BLIVRE importada (`tools/biblia/`). Próximo: servidor (Fase 2).
+Estado atual: **Fases 1 e 2 concluídas**: BLIVRE importada (`tools/biblia/`) e servidor base em contêineres
+(`server/`, `infra/`). Em andamento: Fase 3 (conteúdo e geração).

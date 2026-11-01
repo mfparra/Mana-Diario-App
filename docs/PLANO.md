@@ -71,7 +71,7 @@ Dep.: 0.4
 
 Dep.: 1.x, 2.x, 0.2
 
-- [ ] **3.1 Calendário** `domain/calendar.py`: computus + datas da tabela de `CONTEUDO_E_LLM.md` §2.
+- [x] **3.1 Calendário** `domain/calendar.py`: computus + datas da tabela de `CONTEUDO_E_LLM.md` §2.
   Aceite: testes das datas listadas (Páscoa 2025–2027, 2030; Corpus Christi 2026).
 - [ ] **3.2 Plano de versículos**: montar acervo próprio em `server/data/verse_plan.*` (≥ 366 referências,
   com tema e datas especiais; o agente propõe só **referências**, o texto vem da BLIVRE) + tabela `verse_plan`;

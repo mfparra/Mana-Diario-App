@@ -38,7 +38,11 @@ Ordem de prioridade para a data D:
 | `corpus_christi` | Páscoa + 60 |
 | `maes` | 2º domingo de maio (Brasil) |
 | `pais` | 2º domingo de agosto (Brasil) |
-| `natal` | 25/12 (opcional: 24/12 véspera) |
+| `natal` | 25/12 (véspera 24/12 não incluída — 🟡) |
+
+Se duas datas coincidirem, vale a de maior prioridade: `pascoa` > `sexta_santa` > `natal` > `pentecostes` >
+`ramos` > `cinzas` > `corpus_christi` > `maes` > `pais` (ex.: 11/05/2008 = Pentecostes e Dia das Mães → Pentecostes).
+Implementação: `server/app/domain/calendar.py`.
 
 Testes obrigatórios: Páscoa de 2025 (20/04),
 2026 (05/04), 2027 (28/03), 2030 (21/04); Corpus Christi 2026 = 04/06.
