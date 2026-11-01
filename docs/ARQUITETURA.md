@@ -138,7 +138,9 @@ Tudo do servidor roda em contêineres, orquestrados por `infra/compose.yaml` com
 | `db` | `postgres:16` oficial | `mana-net` | `mana-pgdata` | Sem porta publicada no host em produção |
 | `llm` | *(projeto llm-server, fora deste compose)* | `llm-net` | — | Compartilhado; o Maná só entra na rede |
 
-- `Containerfile` multi-stage (build com `uv` → runtime slim), rootless, sem segredos na imagem.
+- `Containerfile` multi-stage (build com `uv` → runtime slim), usuário 10001, sem segredos na imagem.
+  No compose, `api`/`worker`/`migrate` rodam com `read_only`, `tmpfs: /tmp`, `cap_drop: ALL` e `no-new-privileges`.
+- `proxy` (Caddy) fica no perfil `prod`; `DATABASE_URL` é montada pelo compose a partir de `POSTGRES_*`.
 - Migrações Alembic rodam num passo `migrate` (serviço one-shot ou `podman compose run --rm api alembic upgrade head`).
 - Em desenvolvimento, a `api` publica `127.0.0.1:8000` (o celular de teste acessa pelo IP da máquina
   via override `compose.dev.yaml`); em produção só o `proxy` publica portas.

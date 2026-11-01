@@ -1,0 +1,11 @@
+# Override de desenvolvimento: publica a API para o host.
+# 127.0.0.1 por padrão; para testar no celular pela rede local, use API_BIND=0.0.0.0 no infra/.env.
+services:
+  api:
+    ports:
+      - "${API_BIND:-127.0.0.1}:8000:8000"
+    environment:
+      APP_ENV: development
+  worker:
+    environment:
+      APP_ENV: development

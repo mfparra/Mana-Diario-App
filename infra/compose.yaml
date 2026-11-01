@@ -1,0 +1,115 @@
+# Stack do servidor do Maná Diário (podman compose). Ver docs/ARQUITETURA.md §6.
+#
+#   cp infra/.env.example infra/.env        # e preencha
+#   (cd tools/biblia && uv run python importar_blivre.py)   # gera build/blivre.sqlite
+#   distrobox-host-exec podman compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build
+#   curl 127.0.0.1:8000/v1/health
+#
+# Produção: sem compose.dev.yaml e com o perfil `prod` (sobe o Caddy com HTTPS):
+#   podman compose -f infra/compose.yaml --profile prod up -d --build
+#
+# Requer a rede externa do llm-server: `podman network create llm-net` (uma vez).
+
+name: mana
+
+x-app: &app
+  build: &build
+    context: ..
+    dockerfile: server/Containerfile
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    BLIVRE_SQLITE_PATH: /data/blivre.sqlite
+  volumes:
+    - ../tools/biblia/build/blivre.sqlite:/data/blivre.sqlite:ro,z
+  networks: [mana-net, llm-net]
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+
+services:
+  db:
+    image: docker.io/library/postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - mana-pgdata:/var/lib/postgresql/data
+    networks: [mana-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  migrate:
+    <<: *app
+    image: localhost/mana-api:latest
+    build: { <<: *build, target: api }
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    networks: [mana-net]
+    depends_on:
+      db: { condition: service_healthy }
+
+  api:
+    <<: *app
+    image: localhost/mana-api:latest
+    build: { <<: *build, target: api }
+    restart: always
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/v1/health', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  worker:
+    <<: *app
+    image: localhost/mana-worker:latest
+    build: { <<: *build, target: worker }
+    restart: always
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-m", "worker.healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  proxy:
+    image: docker.io/library/caddy:2-alpine
+    profiles: [prod]
+    restart: always
+    environment:
+      API_DOMAIN: ${API_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro,z
+      - mana-caddy:/data
+    networks: [mana-net]
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  mana-pgdata:
+    name: mana-pgdata
+  mana-caddy:
+    name: mana-caddy
+
+networks:
+  mana-net:
+    name: mana-net
+  llm-net:
+    external: true

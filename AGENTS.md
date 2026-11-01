@@ -102,8 +102,8 @@ mana-diario-app/
 
 ## 5. Ambiente e comandos
 
-- O Claude Code roda **dentro de um distrobox**; lá `podman compose` não tinha provedor.
-  Use `distrobox-host-exec podman compose ...` (confirmar na Fase 2).
+- O Claude Code roda **dentro de um distrobox**; use o Podman do host: `distrobox-host-exec podman ...`
+  (confirmado em 2026-10-31: Podman 5.8, provedor compose = Docker Compose v5 do host).
 - Servidor: `cd server && uv run pytest` / `uv run ruff check . && uv run ruff format --check .`;
   rodar local sem contêiner: `uv run uvicorn app.main:app --port 8000` → `curl localhost:8000/v1/health`
 - Testes de banco: `server/scripts/test-db.sh up` (Postgres descartável em 127.0.0.1:55432) e
@@ -112,7 +112,10 @@ mana-diario-app/
   `uv run alembic revision --autogenerate -m "..."` (revisar o arquivo gerado).
 - Imagens (contexto = raiz do repo): `distrobox-host-exec podman build --format docker -f server/Containerfile --target api -t localhost/mana-api:dev .`
   (idem `--target worker`). `--format docker` é necessário para o `HEALTHCHECK` ser mantido.
-- Subir stack local: `distrobox-host-exec podman compose -f infra/compose.yaml up -d`
+- Subir stack local (gera antes o `tools/biblia/build/blivre.sqlite`; `infra/.env` a partir do `.env.example`):
+  `distrobox-host-exec podman compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build`
+  → `curl 127.0.0.1:8000/v1/health` deve mostrar `db: ok` e `llm: ok`. Parar: `... compose -f infra/compose.yaml down`.
+  Produção: sem o `compose.dev.yaml` e com `--profile prod` (Caddy/HTTPS).
 - Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD`
 - Bíblia: `cd tools/biblia && uv run python importar_blivre.py` (padrão: `fonte/porbr2018_usfm.zip` → `build/blivre.sqlite`);
   testes `uv run pytest`; lint `uv run ruff check . && uv run ruff format --check .`;
