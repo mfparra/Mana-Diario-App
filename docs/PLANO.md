@@ -56,7 +56,7 @@ Dep.: 0.4
   conforme `ARQUITETURA.md`. Aceite: `uv run pytest` e `ruff` passam; `GET /v1/health` responde.
 - [x] **2.2 Banco**: SQLAlchemy 2 + Alembic; migração inicial com todas as tabelas de `ARQUITETURA.md` §3.
   Aceite: `alembic upgrade head` num Postgres limpo; teste de migração ida e volta.
-- [ ] **2.2b Containerfile** `server/Containerfile` multi-stage (alvos `api` e `worker`), rootless, `uv`, healthcheck.
+- [x] **2.2b Containerfile** `server/Containerfile` multi-stage (alvos `api` e `worker`), rootless, `uv`, healthcheck.
   Aceite: `podman build` funciona; imagem roda como usuário não-root; nenhum segredo na imagem (`podman history`).
 - [ ] **2.3 Compose** `infra/compose.yaml` (+ `compose.dev.yaml`) conforme `ARQUITETURA.md` §6: `db` (Postgres 16, volume), `api`, `worker`, passo de migração; `blivre.sqlite`
   montado somente leitura; `api`/`worker` na rede externa `llm-net` (`LLM_BASE_URL=http://llm:8081/v1`);

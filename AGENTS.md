@@ -110,6 +110,8 @@ mana-diario-app/
   `TEST_DATABASE_URL=postgresql+psycopg://mana:mana@127.0.0.1:55432/mana_test uv run pytest`; sem a variável, são pulados.
 - Migrações: `DATABASE_URL=... uv run alembic upgrade head`; nova revisão:
   `uv run alembic revision --autogenerate -m "..."` (revisar o arquivo gerado).
+- Imagens (contexto = raiz do repo): `distrobox-host-exec podman build --format docker -f server/Containerfile --target api -t localhost/mana-api:dev .`
+  (idem `--target worker`). `--format docker` é necessário para o `HEALTHCHECK` ser mantido.
 - Subir stack local: `distrobox-host-exec podman compose -f infra/compose.yaml up -d`
 - Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD`
 - Bíblia: `cd tools/biblia && uv run python importar_blivre.py` (padrão: `fonte/porbr2018_usfm.zip` → `build/blivre.sqlite`);

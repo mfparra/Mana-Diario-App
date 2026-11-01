@@ -1,0 +1,50 @@
+# Imagem do servidor do Maná Diário — alvos `api` e `worker`.
+# Contexto de build = raiz do repositório (para incluir tools/biblia na tarefa 2.4):
+#   podman build --format docker -f server/Containerfile --target api    -t mana-api .
+#   podman build --format docker -f server/Containerfile --target worker -t mana-worker .
+# Nenhum segredo entra na imagem: tudo vem do ambiente em tempo de execução (infra/.env).
+
+ARG PYTHON_IMAGE=docker.io/library/python:3.12-slim-bookworm
+
+# ---------- build: dependências num venv isolado ----------
+FROM ${PYTHON_IMAGE} AS build
+COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /usr/local/bin/uv
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PROJECT_ENVIRONMENT=/opt/venv
+WORKDIR /src/server
+COPY server/pyproject.toml server/uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+COPY server/app ./app
+COPY server/worker ./worker
+COPY server/migrations ./migrations
+COPY server/alembic.ini ./
+COPY server/prompts ./prompts
+COPY server/data ./data
+
+# ---------- runtime comum ----------
+FROM ${PYTHON_IMAGE} AS base
+RUN useradd --system --uid 10001 --user-group --home-dir /app --shell /usr/sbin/nologin mana
+COPY --from=build /opt/venv /opt/venv
+COPY --from=build /src/server /app
+ENV PATH=/opt/venv/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    APP_ENV=production
+WORKDIR /app
+# código pertence ao root e é só leitura para o usuário da aplicação
+USER 10001:10001
+
+# ---------- api ----------
+FROM base AS api
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD ["python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/v1/health', timeout=4).status == 200 else 1)"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+
+# ---------- worker ----------
+FROM base AS worker
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD ["python", "-m", "worker.healthcheck"]
+CMD ["python", "-m", "worker"]

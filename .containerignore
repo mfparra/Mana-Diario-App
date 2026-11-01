@@ -1,0 +1,18 @@
+# Contexto de build = raiz do repositório. Só entra o que o Containerfile copia.
+**/.git
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.env
+**/*.env
+!**/.env.example
+android/
+docs/
+infra/
+tools/biblia/build/
+tools/biblia/fonte/
+**/*.jks
+**/*.keystore
+**/google-services.json
+**/service-account*.json
