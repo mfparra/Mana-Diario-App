@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
+from app.core.crypto import FieldCipher, get_cipher
 from app.db.models import User
 from app.db.session import get_session
 from app.services.account import AccountService, effective_preferences
@@ -81,8 +82,10 @@ def _me(user: User, prefs: dict[str, Any]) -> MeOut:
     )
 
 
-def get_account_service(session: AsyncSession = Depends(get_session)) -> AccountService:
-    return AccountService(session)
+def get_account_service(
+    session: AsyncSession = Depends(get_session), cipher: FieldCipher = Depends(get_cipher)
+) -> AccountService:
+    return AccountService(session, cipher)
 
 
 @router.get("", response_model=MeOut)

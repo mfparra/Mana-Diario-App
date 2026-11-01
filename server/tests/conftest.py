@@ -14,6 +14,7 @@ requires_db = pytest.mark.skipif(not DB_URL, reason="TEST_DATABASE_URL não defi
 
 GOOGLE_CLIENT_ID = "teste-web-client.apps.googleusercontent.com"
 JWT_SECRET = "s" * 40
+FIELD_KEY = "1:" + "A" * 43  # 32 bytes zerados em base64url (só para testes)
 
 
 @pytest.fixture(scope="session")
@@ -80,6 +81,7 @@ async def api_db(migrated_db_url, google_keys):
 
     from app.api.v1.auth import get_google_verifier
     from app.core.config import Settings, get_settings
+    from app.core.crypto import FieldCipher, get_cipher
     from app.db.session import get_session
     from app.main import create_app
     from app.services.google_id import GoogleIdTokenVerifier
@@ -99,6 +101,7 @@ async def api_db(migrated_db_url, google_keys):
     app.dependency_overrides[get_google_verifier] = lambda: GoogleIdTokenVerifier(
         GOOGLE_CLIENT_ID, lambda t: public
     )
+    app.dependency_overrides[get_cipher] = lambda: FieldCipher(FIELD_KEY)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         c.app = app
         yield c, maker

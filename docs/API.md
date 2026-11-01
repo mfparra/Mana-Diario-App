@@ -130,17 +130,23 @@ Pull incremental (inclui exclusões):
 { "items": [ { "date": "2026-11-01", "body": "texto…", "version": 3, "updated_at": "…", "deleted": false } ],
   "server_time": "2026-11-01T12:00:00Z" }
 ```
-O app guarda `server_time` e usa como próximo `updated_since`.
+O app guarda `server_time` e usa como próximo `updated_since`. `server_time` fica 5 s no passado (escritas
+concorrentes não escapam; no máximo voltam repetidas — tratar como idempotente). Excluídas vêm com
+`deleted: true` e `body: null`. Sem `updated_since` → todas as não excluídas.
+Campo extra `full_sync_required: true` quando `updated_since` tem mais de 30 dias (os tombstones já foram limpos):
+o app deve substituir a lista local pela resposta.
 
-### `GET /notes/{date}` → uma anotação (404 se não existe).
+### `GET /notes/{date}` → uma anotação (404 se não existe ou foi excluída).
 
 ### `PUT /notes/{date}`
 Entrada: `{ "body": "texto (≤ 10.000 caracteres)", "base_version": 2 }` (`base_version: 0` para criar).
 - 200 → `{ "date": "...", "version": 3, "updated_at": "..." }`
-- 409 `note_conflict` → `details` traz a versão atual do servidor (`body`, `version`, `updated_at`).
-- A data deve ter estudo publicado (ou ser ≤ hoje).
+- 409 `note_conflict` → `details` traz a versão atual do servidor (`body`, `version`, `updated_at`, `deleted`).
+  Também 409 ao criar (`base_version: 0`) uma que já existe; recriar sobre um tombstone exige a versão dele.
+- Data até hoje + 1 (fuso do servidor); além disso → 422 `future_date`.
 
-### `DELETE /notes/{date}?base_version=3` → 204 (tombstone) · 409 se a versão mudou.
+### `DELETE /notes/{date}?base_version=3` → 204 (tombstone, versão +1) · 409 se a versão mudou.
+Idempotente: anotação inexistente ou já excluída → 204. Tombstones são apagados após 30 dias.
 
 ## Perfil premium
 

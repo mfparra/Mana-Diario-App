@@ -126,7 +126,9 @@ Deep link externo opcional: `manadiario://study/2026-11-01`.
 - ID token Google validado no servidor (assinatura, `aud` = Web client ID, `iss`, `exp`).
 - JWT próprio assinado (HS256 com segredo forte ou EdDSA); refresh token rotativo com detecção de reuso.
 - Tokens no app: DataStore cifrado com Tink (chave no Android Keystore).
-- Perfil premium e anotações: criptografia de campo no servidor (chave em variável de ambiente, rotação documentada).
+- Perfil premium e anotações: criptografia de campo no servidor (`app/core/crypto.py`): AES-256-GCM, formato
+  `versão | key_id | nonce | ct`, AAD `note:<user_id>:<data>` (bytes copiados para outra linha não decifram).
+  Chaves em `FIELD_ENCRYPTION_KEY` (`id:chave,...`, a primeira cifra; rotação = nova chave na frente).
 - Rate limit por usuário nos endpoints de geração; endpoints admin protegidos por token separado.
 - Logs JSON sem PII (`app/core/logging.py`): sem e-mail, IP, cabeçalhos, corpo, query string, texto do perfil
   ou da anotação, prompt personalizado nem mensagem de exceção (só tipo + pilha). Campos extras só de uma

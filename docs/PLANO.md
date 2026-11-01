@@ -94,7 +94,8 @@ Dep.: 1.x, 2.x, 0.2
   Aceite: testes com `FakeLlmClient` cobrindo sucesso, JSON inválido, ref fora dos candidatos,
   citação bíblica entre aspas no corpo, falha após 3 tentativas.
 - [ ] **3.8 Worker**: garante hoje..D+7 publicados; processa jobs; lotes na janela da madrugada e 1 requisição
-  por vez (llm-server compartilhado); CLI `gerar --data` e `gerar --de --ate`.
+  por vez (llm-server compartilhado); CLI `gerar --data` e `gerar --de --ate`. Também roda, 1×/dia,
+  `NotesService.purge_tombstones()` (tombstones de anotações com mais de 30 dias).
   Aceite: stack local gera 8 dias seguidos sozinha; BuscaPalavras continua respondendo durante o lote.
 - [ ] **3.9 Pool de reserva** (14 estudos) + publicação de fallback à meia-noite. Aceite: teste simulando falha do LLM.
 - [ ] **3.10 Endpoints admin** (listar falhas, regenerar, publicar). Aceite: protegidos por `X-Admin-Token`.
@@ -109,7 +110,7 @@ Dep.: 2.x (3.x para dados reais)
 - [x] **4.3 `/me`** (GET, PATCH, DELETE, export). Aceite: exclusão apaga todas as tabelas relacionadas.
 - [x] **4.4 Estudos**: `/studies/today`, `/studies/{date}`, `/studies?from&to` com ETag e regra de data futura.
   Aceite: testes de 304, 404, 422; payload igual ao exemplo de `API.md`.
-- [ ] **4.5 Anotações**: `GET /notes?updated_since`, `GET/PUT/DELETE /notes/{date}` com criptografia de campo,
+- [x] **4.5 Anotações**: `GET /notes?updated_since`, `GET/PUT/DELETE /notes/{date}` com criptografia de campo,
   versão otimista (409 com versão do servidor) e tombstones. Aceite: testes de criar, editar, conflito, excluir,
   pull incremental; banco guarda só bytes cifrados; export e exclusão de conta incluem anotações
   (o export da 4.3 hoje só traz metadados das notas: incluir o texto decifrado).

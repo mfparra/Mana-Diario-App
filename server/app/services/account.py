@@ -7,6 +7,7 @@ from typing import Any
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.crypto import FieldCipher
 from app.db.models import (
     GenerationJob,
     Note,
@@ -16,6 +17,7 @@ from app.db.models import (
     User,
     UserProfile,
 )
+from app.notes.service import NotesService
 
 DEFAULT_PREFERENCES: dict[str, Any] = {
     "notification_time": "07:00",
@@ -37,8 +39,9 @@ def _iso(v: Any) -> Any:
 
 
 class AccountService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, cipher: FieldCipher):
         self.session = session
+        self.cipher = cipher
 
     async def update_preferences(self, user: User, changes: dict[str, Any]) -> dict[str, Any]:
         user.preferences = {**(user.preferences or {}), **changes}
@@ -60,7 +63,6 @@ class AccountService:
         personal = (
             await self.session.scalars(select(PersonalStudy).where(PersonalStudy.user_id == user.id))
         ).all()
-        notes = (await self.session.scalars(select(Note).where(Note.user_id == user.id))).all()
         profile = await self.session.get(UserProfile, user.id)
         return {
             "exported_at": dt.datetime.now(dt.UTC).isoformat(),
@@ -91,17 +93,8 @@ class AccountService:
                 for s in subs
             ],
             "personal_studies": [{"date": _iso(p.date), "payload": p.payload} for p in personal],
-            # Texto das anotações e do perfil é decifrado pelos serviços de notas (4.5) e perfil (9.1),
-            # que registram aqui seus exportadores; até lá, só os metadados.
-            "notes": [
-                {
-                    "date": _iso(n.date),
-                    "version": n.version,
-                    "updated_at": _iso(n.updated_at),
-                    "deleted": n.deleted_at is not None,
-                }
-                for n in notes
-            ],
+            "notes": await NotesService(self.session, self.cipher).export(user.id),
+            # o texto do perfil premium entra junto com o serviço de perfil (tarefa 9.1)
             "profile": None
             if profile is None
             else {
