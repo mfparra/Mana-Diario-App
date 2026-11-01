@@ -3,8 +3,13 @@
 Base: `https://<dominio>/v1` (ver DECISOES S7). JSON UTF-8. Datas `AAAA-MM-DD`, instantes ISO-8601 UTC.
 Autenticação: `Authorization: Bearer <access_token>` em todos os endpoints, exceto `/auth/*` e `/health`.
 
-O FastAPI gera o OpenAPI em `/v1/openapi.json`; **este documento é a especificação de referência** —
-ao mudar código, atualize aqui.
+O FastAPI gera o OpenAPI em `/v1/openapi.json` (cópia versionada em `docs/openapi.json`, gerada por
+`cd server && uv run python -m app.cli export-openapi`). **Este documento é a especificação de referência** —
+ao mudar código, atualize aqui. Testes (`server/tests/test_contract.py`) falham se o `openapi.json` estiver
+desatualizado, se uma rota implementada não estiver descrita aqui ou se uma rota protegida responder sem token.
+
+Implementado até agora (Fase 4): `/health`, `/auth/*`, `/me` (+ `/me/export`), `/studies/*` (exceto `personal`),
+`/notes/*`. Pendentes: `/studies/{date}/personal` e `/me/profile` (Fase 9), `/subscriptions/*` (Fase 8), `/admin/*` (3.10).
 
 ## Formato de erro
 

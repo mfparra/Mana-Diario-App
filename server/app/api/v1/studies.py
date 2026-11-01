@@ -11,11 +11,18 @@ from app.core.errors import ApiError
 from app.core.ratelimit import STUDIES, limit_by_user
 from app.db.models import Study
 from app.db.session import get_session
+from app.domain.study import StudyPayload
 from app.services.studies import MAX_RANGE_DAYS, FutureDate, InvalidRange, StudyService
 
 router = APIRouter(prefix="/studies", tags=["studies"], dependencies=[Depends(limit_by_user(STUDIES))])
 
 CACHE_CONTROL = "private, max-age=300"
+STUDY_RESPONSES: dict[int | str, dict[str, Any]] = {
+    200: {"model": StudyPayload, "description": "Objeto Study"},
+    304: {"description": "Não modificado (If-None-Match igual ao ETag)"},
+    404: {"description": "study_not_available"},
+    422: {"description": "future_date ou validation_error"},
+}
 
 
 def get_study_service(session: AsyncSession = Depends(get_session)) -> StudyService:
@@ -75,7 +82,7 @@ async def _serve(request: Request, svc: StudyService, date: dt.date) -> Response
     return _study_response(request, study)
 
 
-@router.get("/today", responses={200: {"description": "Objeto Study (ver docs/API.md)"}, 304: {}})
+@router.get("/today", responses=STUDY_RESPONSES)
 async def today(
     request: Request,
     tz: Annotated[str | None, Query(max_length=64, description="Fuso IANA do aparelho")] = None,
@@ -115,7 +122,7 @@ def _summary(s: Study) -> StudySummary:
     )
 
 
-@router.get("/{date}", responses={200: {"description": "Objeto Study (ver docs/API.md)"}, 304: {}})
+@router.get("/{date}", responses=STUDY_RESPONSES)
 async def by_date(
     request: Request, date: dt.date, svc: StudyService = Depends(get_study_service)
 ) -> Response:

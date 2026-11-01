@@ -115,7 +115,7 @@ Dep.: 2.x (3.x para dados reais)
   pull incremental; banco guarda só bytes cifrados; export e exclusão de conta incluem anotações
   (o export da 4.3 hoje só traz metadados das notas: incluir o texto decifrado).
 - [x] **4.6 Rate limiting** conforme `API.md`.
-- [ ] **4.7 Contrato**: exportar `openapi.json` para `docs/` e conferir com `API.md`.
+- [x] **4.7 Contrato**: exportar `openapi.json` para `docs/` e conferir com `API.md`.
 
 ## Fase 5 — App Android: base
 

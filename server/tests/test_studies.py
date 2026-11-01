@@ -168,3 +168,9 @@ async def test_exige_login(studies_api):
 def test_etag_estavel_e_sensivel_ao_conteudo():
     assert compute_etag(EXEMPLO) == compute_etag(json.loads(json.dumps(EXEMPLO)))
     assert compute_etag(EXEMPLO) != compute_etag(_payload("2026-11-01", title="Outro"))
+
+
+def test_exemplo_da_api_valida_no_modelo_publicado():
+    from app.domain.study import StudyPayload
+
+    assert StudyPayload.model_validate(EXEMPLO).model_dump(mode="json") == EXEMPLO

@@ -47,3 +47,60 @@ class StudyLlmOutput(BaseModel):
         if len(out) < 2:
             raise ValueError("informe de 2 a 4 palavras-chave distintas")
         return out
+
+
+# --- Payload publicado (objeto `Study` do docs/API.md) -------------------------------------------
+# Montado pelo pipeline de geração com o texto bíblico já resolvido da BLIVRE; servido como está.
+
+STUDY_SCHEMA_VERSION = 1
+
+
+class VerseRefOut(BaseModel):
+    book: str = Field(description="Código USFM do livro")
+    chapter: int
+    verse_start: int | None = Field(description="null = capítulo inteiro")
+    verse_end: int | None
+
+
+class VerseOut(BaseModel):
+    ref: VerseRefOut
+    display_ref: str
+    text: str = Field(description="Texto da BLIVRE, resolvido pelo servidor")
+    translation: str = "BLIVRE"
+
+
+class QuoteOut(BaseModel):
+    id: str
+    text: str
+    author: str
+    source: str
+
+
+class ComplementaryReadingOut(BaseModel):
+    ref: VerseRefOut
+    display_ref: str
+    reason: str
+
+
+class SpecialDayOut(BaseModel):
+    key: str
+    name: str
+
+
+class StudyPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: int = STUDY_SCHEMA_VERSION
+    date: str
+    day_of_year: int
+    days_in_year: int
+    special_day: SpecialDayOut | None
+    title: str
+    verse: VerseOut
+    body: list[str]
+    application: str
+    prayer: str
+    quote: QuoteOut | None = Field(description="null se não houver citação adequada (o app esconde a caixa)")
+    complementary_reading: ComplementaryReadingOut
+    keywords: list[str]
+    generated_at: str

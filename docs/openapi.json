@@ -1,0 +1,1406 @@
+{
+  "components": {
+    "schemas": {
+      "ComplementaryReadingOut": {
+        "properties": {
+          "display_ref": {
+            "title": "Display Ref",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "ref": {
+            "$ref": "#/components/schemas/VerseRefOut"
+          }
+        },
+        "required": [
+          "ref",
+          "display_ref",
+          "reason"
+        ],
+        "title": "ComplementaryReadingOut",
+        "type": "object"
+      },
+      "GoogleLoginIn": {
+        "properties": {
+          "device_label": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Label"
+          },
+          "id_token": {
+            "maxLength": 4096,
+            "minLength": 20,
+            "title": "Id Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id_token"
+        ],
+        "title": "GoogleLoginIn",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthOut": {
+        "properties": {
+          "db": {
+            "enum": [
+              "ok",
+              "error",
+              "not_configured"
+            ],
+            "title": "Db",
+            "type": "string"
+          },
+          "llm": {
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Llm",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "today_published": {
+            "title": "Today Published",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "db",
+          "llm",
+          "today_published"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "LoginOut": {
+        "properties": {
+          "access_expires_in": {
+            "title": "Access Expires In",
+            "type": "integer"
+          },
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "refresh_expires_in": {
+            "title": "Refresh Expires In",
+            "type": "integer"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          }
+        },
+        "required": [
+          "access_token",
+          "access_expires_in",
+          "refresh_token",
+          "refresh_expires_in",
+          "user"
+        ],
+        "title": "LoginOut",
+        "type": "object"
+      },
+      "MeOut": {
+        "properties": {
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "subscription": {
+            "$ref": "#/components/schemas/SubscriptionSummary"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MeUser"
+          }
+        },
+        "required": [
+          "user",
+          "preferences",
+          "subscription"
+        ],
+        "title": "MeOut",
+        "type": "object"
+      },
+      "MePatch": {
+        "additionalProperties": false,
+        "properties": {
+          "preferences": {
+            "$ref": "#/components/schemas/PreferencesPatch"
+          }
+        },
+        "required": [
+          "preferences"
+        ],
+        "title": "MePatch",
+        "type": "object"
+      },
+      "MeUser": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_premium": {
+            "title": "Is Premium",
+            "type": "boolean"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "photo_url",
+          "is_premium"
+        ],
+        "title": "MeUser",
+        "type": "object"
+      },
+      "NoteList": {
+        "properties": {
+          "full_sync_required": {
+            "title": "Full Sync Required",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NoteOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "server_time": {
+            "format": "date-time",
+            "title": "Server Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "server_time",
+          "full_sync_required"
+        ],
+        "title": "NoteList",
+        "type": "object"
+      },
+      "NoteOut": {
+        "properties": {
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "deleted": {
+            "title": "Deleted",
+            "type": "boolean"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "body",
+          "version",
+          "updated_at",
+          "deleted"
+        ],
+        "title": "NoteOut",
+        "type": "object"
+      },
+      "NotePut": {
+        "properties": {
+          "base_version": {
+            "minimum": 0.0,
+            "title": "Base Version",
+            "type": "integer"
+          },
+          "body": {
+            "maxLength": 10000,
+            "title": "Body",
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "base_version"
+        ],
+        "title": "NotePut",
+        "type": "object"
+      },
+      "NoteSaved": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "version",
+          "updated_at"
+        ],
+        "title": "NoteSaved",
+        "type": "object"
+      },
+      "Preferences": {
+        "properties": {
+          "notification_time": {
+            "title": "Notification Time",
+            "type": "string"
+          },
+          "notifications_enabled": {
+            "title": "Notifications Enabled",
+            "type": "boolean"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "notification_time",
+          "notifications_enabled",
+          "timezone"
+        ],
+        "title": "Preferences",
+        "type": "object"
+      },
+      "PreferencesPatch": {
+        "additionalProperties": false,
+        "properties": {
+          "notification_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notification Time"
+          },
+          "notifications_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notifications Enabled"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "PreferencesPatch",
+        "type": "object"
+      },
+      "QuoteOut": {
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "author",
+          "source"
+        ],
+        "title": "QuoteOut",
+        "type": "object"
+      },
+      "RefreshIn": {
+        "properties": {
+          "refresh_token": {
+            "maxLength": 200,
+            "minLength": 20,
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshIn",
+        "type": "object"
+      },
+      "SpecialDayOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ],
+        "title": "SpecialDayOut",
+        "type": "object"
+      },
+      "StudyList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StudySummary"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "StudyList",
+        "type": "object"
+      },
+      "StudyPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "application": {
+            "title": "Application",
+            "type": "string"
+          },
+          "body": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Body",
+            "type": "array"
+          },
+          "complementary_reading": {
+            "$ref": "#/components/schemas/ComplementaryReadingOut"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "day_of_year": {
+            "title": "Day Of Year",
+            "type": "integer"
+          },
+          "days_in_year": {
+            "title": "Days In Year",
+            "type": "integer"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "prayer": {
+            "title": "Prayer",
+            "type": "string"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuoteOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null se não houver citação adequada (o app esconde a caixa)"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "special_day": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpecialDayOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "verse": {
+            "$ref": "#/components/schemas/VerseOut"
+          }
+        },
+        "required": [
+          "date",
+          "day_of_year",
+          "days_in_year",
+          "special_day",
+          "title",
+          "verse",
+          "body",
+          "application",
+          "prayer",
+          "quote",
+          "complementary_reading",
+          "keywords",
+          "generated_at"
+        ],
+        "title": "StudyPayload",
+        "type": "object"
+      },
+      "StudySummary": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "verse_ref": {
+            "title": "Verse Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "title",
+          "verse_ref",
+          "keywords"
+        ],
+        "title": "StudySummary",
+        "type": "object"
+      },
+      "SubscriptionSummary": {
+        "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "is_premium": {
+            "title": "Is Premium",
+            "type": "boolean"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": [
+          "is_premium"
+        ],
+        "title": "SubscriptionSummary",
+        "type": "object"
+      },
+      "TokensOut": {
+        "properties": {
+          "access_expires_in": {
+            "title": "Access Expires In",
+            "type": "integer"
+          },
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "refresh_expires_in": {
+            "title": "Refresh Expires In",
+            "type": "integer"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "access_expires_in",
+          "refresh_token",
+          "refresh_expires_in"
+        ],
+        "title": "TokensOut",
+        "type": "object"
+      },
+      "UserOut": {
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "boolean"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_premium": {
+            "title": "Is Premium",
+            "type": "boolean"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "photo_url",
+          "is_premium",
+          "created"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerseOut": {
+        "properties": {
+          "display_ref": {
+            "title": "Display Ref",
+            "type": "string"
+          },
+          "ref": {
+            "$ref": "#/components/schemas/VerseRefOut"
+          },
+          "text": {
+            "description": "Texto da BLIVRE, resolvido pelo servidor",
+            "title": "Text",
+            "type": "string"
+          },
+          "translation": {
+            "default": "BLIVRE",
+            "title": "Translation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "display_ref",
+          "text"
+        ],
+        "title": "VerseOut",
+        "type": "object"
+      },
+      "VerseRefOut": {
+        "properties": {
+          "book": {
+            "description": "Código USFM do livro",
+            "title": "Book",
+            "type": "string"
+          },
+          "chapter": {
+            "title": "Chapter",
+            "type": "integer"
+          },
+          "verse_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verse End"
+          },
+          "verse_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null = capítulo inteiro",
+            "title": "Verse Start"
+          }
+        },
+        "required": [
+          "book",
+          "chapter",
+          "verse_start",
+          "verse_end"
+        ],
+        "title": "VerseRefOut",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Maná Diário API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/v1/auth/google": {
+      "post": {
+        "operationId": "login_google_v1_auth_google_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleLoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login Google",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "operationId": "logout_v1_auth_logout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "operationId": "refresh_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Refresh",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "operationId": "health_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "infra"
+        ]
+      }
+    },
+    "/v1/me": {
+      "delete": {
+        "operationId": "delete_me_v1_me_delete",
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Delete Me",
+        "tags": [
+          "me"
+        ]
+      },
+      "get": {
+        "operationId": "get_me_v1_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Me",
+        "tags": [
+          "me"
+        ]
+      },
+      "patch": {
+        "operationId": "patch_me_v1_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MePatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Me",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/export": {
+      "get": {
+        "operationId": "export_me_v1_me_export_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Export Me",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/notes": {
+      "get": {
+        "operationId": "list_notes_v1_notes_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "updated_since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Updated Since"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Notes",
+        "tags": [
+          "notes"
+        ]
+      }
+    },
+    "/v1/notes/{date}": {
+      "delete": {
+        "operationId": "delete_note_v1_notes__date__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "base_version",
+            "required": true,
+            "schema": {
+              "minimum": 0,
+              "title": "Base Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Note",
+        "tags": [
+          "notes"
+        ]
+      },
+      "get": {
+        "operationId": "get_note_v1_notes__date__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Note",
+        "tags": [
+          "notes"
+        ]
+      },
+      "put": {
+        "operationId": "put_note_v1_notes__date__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotePut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteSaved"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Note",
+        "tags": [
+          "notes"
+        ]
+      }
+    },
+    "/v1/studies": {
+      "get": {
+        "operationId": "list_studies_v1_studies_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Studies",
+        "tags": [
+          "studies"
+        ]
+      }
+    },
+    "/v1/studies/today": {
+      "get": {
+        "operationId": "today_v1_studies_today_get",
+        "parameters": [
+          {
+            "description": "Fuso IANA do aparelho",
+            "in": "query",
+            "name": "tz",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Fuso IANA do aparelho",
+              "title": "Tz"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyPayload"
+                }
+              }
+            },
+            "description": "Objeto Study"
+          },
+          "304": {
+            "description": "Não modificado (If-None-Match igual ao ETag)"
+          },
+          "404": {
+            "description": "study_not_available"
+          },
+          "422": {
+            "description": "future_date ou validation_error"
+          }
+        },
+        "summary": "Today",
+        "tags": [
+          "studies"
+        ]
+      }
+    },
+    "/v1/studies/{date}": {
+      "get": {
+        "operationId": "by_date_v1_studies__date__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyPayload"
+                }
+              }
+            },
+            "description": "Objeto Study"
+          },
+          "304": {
+            "description": "Não modificado (If-None-Match igual ao ETag)"
+          },
+          "404": {
+            "description": "study_not_available"
+          },
+          "422": {
+            "description": "future_date ou validation_error"
+          }
+        },
+        "summary": "By Date",
+        "tags": [
+          "studies"
+        ]
+      }
+    }
+  }
+}

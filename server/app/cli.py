@@ -16,6 +16,14 @@ from pathlib import Path
 from app.core.config import Settings
 
 PROMPTS = Path(__file__).resolve().parents[1] / "prompts"
+DOCS = Path(__file__).resolve().parents[2] / "docs"
+
+
+def openapi_json() -> str:
+    from app.main import create_app
+
+    return json.dumps(create_app().openapi(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
 
 # Estudo de teste fixo: referências apenas; o texto vem da BLIVRE quando o arquivo existe.
 CHECK_VERSE = "Sl 23.1"
@@ -97,7 +105,13 @@ def main(argv: list[str] | None = None) -> int:
     chk = sub.add_parser("llm-check", help="verifica o provedor LLM e gera um estudo de teste")
     chk.add_argument("--env-file", type=Path, help="lê as variáveis deste arquivo (ex.: infra/.env)")
     chk.add_argument("--saida", choices=["texto", "json"], default="texto")
+    exp = sub.add_parser("export-openapi", help="grava docs/openapi.json")
+    exp.add_argument("--saida", type=Path, default=DOCS / "openapi.json")
     args = ap.parse_args(argv)
+    if args.cmd == "export-openapi":
+        args.saida.write_text(openapi_json())
+        print(f"OpenAPI gravado em {args.saida}", file=sys.stderr)
+        return 0
     settings = Settings(_env_file=args.env_file) if args.env_file else Settings()
     if args.cmd == "llm-check":
         return asyncio.run(llm_check(settings, as_json=args.saida == "json"))
