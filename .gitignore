@@ -2,6 +2,8 @@
 .env
 *.env
 !.env.example
+# perfis de LLM: só variáveis LLM_* sem chave (ver infra/llm-profiles/README.md)
+!infra/llm-profiles/*.env
 google-services.json
 *.jks
 *.keystore

@@ -81,7 +81,7 @@ Dep.: 1.x, 2.x, 0.2
   Aceite: teste de seleção determinística por data; nenhuma citação sem autor.
 - [x] **3.4 Candidatos de leitura complementar** (P9): fonte de referências cruzadas (OpenBible.info, conferir licença).
   Aceite: para 50 versículos do plano, ≥ 3 candidatos válidos cada.
-- [ ] **3.5 Adaptador LLM agnóstico**: `LlmClient` + `OpenAICompatibleClient` + `FakeLlmClient`, configurado só por
+- [x] **3.5 Adaptador LLM agnóstico**: `LlmClient` + `OpenAICompatibleClient` + `FakeLlmClient`, configurado só por
   `LLM_*` (`LLM_SERVER.md` §3–4): modo JSON configurável, `LLM_EXTRA_BODY`, remoção de raciocínio, extração de JSON,
   orçamento de contexto, timeout longo, semáforo de concorrência, registro de `provider`/`model`.
   Perfis em `infra/llm-profiles/` e comando `llm-check`.

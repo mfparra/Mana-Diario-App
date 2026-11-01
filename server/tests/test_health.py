@@ -66,7 +66,7 @@ async def test_check_llm(status, esperado):
         seen["auth"] = req.headers.get("authorization")
         return httpx.Response(status, json={"data": []})
 
-    s = Settings(llm_base_url="http://llm:8081/v1/", llm_api_key="k")
+    s = Settings(llm_base_url="http://llm:8081/v1/", llm_api_key="k", llm_model="m")
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as c:
         assert await check_llm(s, c) == esperado
     assert seen == {"url": "http://llm:8081/v1/models", "auth": "Bearer k"}
@@ -77,7 +77,7 @@ async def test_check_llm_sem_conexao():
         raise httpx.ConnectError("recusado")
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as c:
-        assert await check_llm(Settings(), c) == "degraded"
+        assert await check_llm(Settings(llm_model="m"), c) == "degraded"
 
 
 def test_llm_extra_body_aceita_json_do_env(monkeypatch):

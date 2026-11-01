@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     llm_provider: Literal["openai_compatible", "fake"] = "openai_compatible"
     llm_base_url: str = "http://llm:8081/v1"
     llm_api_key: str | None = None
-    llm_model: str = "gemma-4-e4b-it"
+    llm_model: str = ""  # sem padrão: nome de modelo só no .env (regra: nada de modelo fora de app/llm)
     llm_json_mode: Literal["none", "json_object", "json_schema"] = "none"
     llm_extra_body: dict[str, Any] = Field(default_factory=dict)
     llm_strip_thinking: bool = True

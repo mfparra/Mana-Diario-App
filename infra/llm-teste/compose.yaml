@@ -1,0 +1,42 @@
+# LLM de TESTE, separado do llm-server compartilhado (não interfere no BuscaPalavras).
+# Usado para validar a troca de provedor (PLANO 3.5) com o Qwen3 4B em modo json_schema.
+#   distrobox-host-exec podman compose -f infra/llm-teste/compose.yaml up -d     # baixa ~3,3 GB na 1ª vez
+#   ... down                                                                       # ao terminar
+# Na rede llm-net: http://mana-llm-teste:8081/v1   No host: http://127.0.0.1:8082/v1
+name: mana-llm-teste
+
+services:
+  llm-teste:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: mana-llm-teste
+    restart: "no"
+    command: >
+      -hf unsloth/Qwen3-4B-Instruct-2507-GGUF:Q6_K
+      --alias qwen3-4b-instruct-2507
+      --host 0.0.0.0 --port 8081
+      -c 4096 -np 1 -t 4 --no-webui
+    environment:
+      LLAMA_CACHE: /models
+    volumes:
+      - models:/models
+    ports:
+      - "127.0.0.1:8082:8081"
+    networks: [llm-net]
+    deploy:
+      resources:
+        limits:
+          memory: 5g
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://127.0.0.1:8081/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 300s
+
+volumes:
+  models:
+    name: mana-llm-teste-models
+
+networks:
+  llm-net:
+    external: true

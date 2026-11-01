@@ -60,9 +60,19 @@ Implementações:
 ### Robustez de JSON (independente do modelo)
 1. Modo de formato configurável: `LLM_JSON_MODE = none | json_object | json_schema`
    (Gemma 4 no llama.cpp → `none`; Qwen/OpenAI → `json_schema`).
-2. Sempre: remover blocos de raciocínio (`<think>…</think>` e similares, configurável), extrair o
-   primeiro objeto JSON do texto, validar com Pydantic.
-3. Inválido → reenviar com o erro de validação anexado (até `LLM_MAX_RETRIES`).
+   Quando o modo não é `json_schema`, o adaptador anexa ao *system* o JSON Schema compacto do Pydantic.
+2. Sempre: remover blocos de raciocínio (`<think>…</think>`, `<thinking>`, `<reasoning>`, `<thought>`,
+   inclusive bloco aberto e não fechado), extrair o primeiro objeto JSON balanceado do texto
+   (aceita texto em volta e cercas ```json```) e validar com Pydantic.
+3. Inválido → nova tentativa com o **pedido original + o erro de validação** (até `LLM_MAX_RETRIES`).
+   A resposta inválida **não** é reenviada, para caber em contextos pequenos (4096).
+4. Erro do provedor (timeout, HTTP ≠ 200, conexão) → `LlmUnavailable` imediato; quem repete é o worker.
+5. Orçamento: estimativa de tokens (≈ 3,2 caracteres/token) do prompt + `max_tokens` > `LLM_CONTEXT_TOKENS`
+   → `LlmContextOverflow` antes de chamar o provedor.
+6. `health()` chama `GET /models` e confere se `LLM_MODEL` está entre os modelos servidos.
+
+Código: `server/app/llm/` (`base.py` interface e erros, `parsing.py`, `generation.py` laço de tentativas,
+`openai_compatible.py`, `fake.py`). O semáforo `LLM_MAX_CONCURRENCY` é por processo.
 
 ## 4. Configuração (`infra/.env`)
 
@@ -88,7 +98,26 @@ Perfis prontos em `infra/llm-profiles/` (`llm-server-gemma.env`, `llm-server-qwe
 
 ## 5. Comando de verificação
 
-`uv run python -m app.cli llm-check` → chama `health`, gera um estudo de teste com o prompt real e mostra
-tempo, tokens, JSON validado e falhas. Usar sempre que trocar de provedor/modelo.
+`python -m app.cli llm-check [--env-file infra/.env] [--saida json]` → chama `health`, gera um estudo de teste
+fixo (Salmos 23.1, prompt `server/prompts/llm_check.md`, schema `StudyLlmOutput`) e mostra provedor, modelo,
+tempo, tentativas, tokens, erros das tentativas e o estudo. Usar sempre que trocar de provedor/modelo.
+
+- No contêiner: `distrobox-host-exec podman compose -f infra/compose.yaml run --rm --no-deps api python -m app.cli llm-check`
+- No host (sem contêiner): `cd server && LLM_BASE_URL=http://127.0.0.1:8081/v1 LLM_MODEL=gemma-4-e4b-it
+  BLIVRE_SQLITE_PATH=../tools/biblia/build/blivre.sqlite uv run python -m app.cli llm-check`
+
+### Resultado da verificação (2026-10-31, estudo de teste Salmos 23.1, mesmo código, só `.env` trocado)
+
+| Perfil | `LLM_JSON_MODE` | Tempo | Tentativas | Tokens (entrada+saída) | Observação |
+|---|---|---|---|---|---|
+| `llm-server-gemma` (Gemma 4 E4B, raciocínio) | `none` | 89 s | 1 | ~720 + 1.521 (inclui raciocínio) | 1ª versão da dica de schema: 208 s / 2 tentativas (o modelo copiou o `$defs` do schema; corrigido expandindo as `$defs`). Também fechou uma lista com `}` → reparo de delimitadores |
+| `llm-server-qwen` (Qwen3 4B, contêiner de teste) | `json_schema` | 49 s | 1 | 391 + 693 | Citou o versículo entre aspas no corpo → a validação de conteúdo da 3.7 precisa barrar |
+
+Orçamento: com o Gemma, raciocínio + resposta usaram ~1.500 dos 2.000 `max_tokens`. Prompts maiores
+(estudo real com citação e datas especiais) devem ficar ≤ 1.800 tokens de entrada, como previsto.
+
+### LLM de teste separada
+`infra/llm-teste/compose.yaml` sobe um llama.cpp **independente** (Qwen3 4B, `mana-llm-teste`, porta 127.0.0.1:8082,
+na `llm-net`) para validar a troca de provedor sem mexer no llm-server compartilhado. Desligar depois do teste.
 
 O estudo e o "Para você" gravam `model` e `provider` usados, para comparar qualidade entre LLMs.
