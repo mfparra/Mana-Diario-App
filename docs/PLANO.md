@@ -105,7 +105,7 @@ Dep.: 2.x (3.x para dados reais)
 
 - [x] **4.1 `POST /auth/google`**: valida ID token (`google-auth`), cria/atualiza usuário, emite tokens.
   Aceite: testes com tokens forjados/expirados/`aud` errado rejeitados.
-- [ ] **4.2 Refresh rotativo + logout** com detecção de reuso. Aceite: testes de rotação e reuso.
+- [x] **4.2 Refresh rotativo + logout** com detecção de reuso. Aceite: testes de rotação e reuso.
 - [ ] **4.3 `/me`** (GET, PATCH, DELETE, export). Aceite: exclusão apaga todas as tabelas relacionadas.
 - [ ] **4.4 Estudos**: `/studies/today`, `/studies/{date}`, `/studies?from&to` com ETag e regra de data futura.
   Aceite: testes de 304, 404, 422; payload igual ao exemplo de `API.md`.

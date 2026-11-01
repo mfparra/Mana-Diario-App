@@ -1,13 +1,13 @@
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.core.errors import ApiError
 from app.db.session import get_session
-from app.services.auth import AuthService
+from app.services.auth import AuthService, InvalidRefreshToken
 from app.services.google_id import GoogleIdTokenVerifier, InvalidGoogleToken
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -73,3 +73,34 @@ async def login_google(body: GoogleLoginIn, service: AuthService = Depends(get_a
             created=result.created,
         ),
     )
+
+
+class RefreshIn(BaseModel):
+    refresh_token: str = Field(min_length=20, max_length=200)
+
+
+class TokensOut(BaseModel):
+    access_token: str
+    access_expires_in: int
+    refresh_token: str
+    refresh_expires_in: int
+
+
+@router.post("/refresh", response_model=TokensOut)
+async def refresh(body: RefreshIn, service: AuthService = Depends(get_auth_service)) -> TokensOut:
+    try:
+        t = await service.refresh(body.refresh_token)
+    except InvalidRefreshToken:
+        raise ApiError("unauthorized", "Sessão expirada. Entre novamente.", 401) from None
+    return TokensOut(
+        access_token=t.access_token,
+        access_expires_in=t.access_expires_in,
+        refresh_token=t.refresh_token,
+        refresh_expires_in=t.refresh_expires_in,
+    )
+
+
+@router.post("/logout", status_code=204)
+async def logout(body: RefreshIn, service: AuthService = Depends(get_auth_service)) -> Response:
+    await service.logout(body.refresh_token)
+    return Response(status_code=204)

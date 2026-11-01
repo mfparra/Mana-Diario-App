@@ -39,11 +39,17 @@ Token inválido, forjado, expirado, com `aud`/`iss` errado ou e-mail não verifi
 `is_premium` só vira `true` com assinatura verificada pelo servidor (Fase 8).
 
 ### `POST /auth/refresh`
-Entrada: `{ "refresh_token": "..." }` → novo par de tokens (o refresh antigo é revogado).
-Reuso de refresh revogado → revoga todos os tokens do usuário (401).
+Entrada: `{ "refresh_token": "..." }` → novo par de tokens (o refresh antigo é revogado e aponta para o novo).
+- Reuso de refresh **já rotacionado** (mais de 15 s depois da rotação) → possível roubo: revoga todos os tokens
+  do usuário (401 em todos os aparelhos).
+- Repetição dentro de 15 s (app reenviou por falha de rede) → só 401, sem derrubar as outras sessões.
+- Refresh encerrado por logout, expirado ou desconhecido → 401.
 
 ### `POST /auth/logout`
-Entrada: `{ "refresh_token": "..." }` → 204.
+Entrada: `{ "refresh_token": "..." }` → 204. Encerra a sessão deste aparelho (a família de tokens desse login).
+Idempotente: token desconhecido ou já encerrado também → 204.
+
+Endpoints protegidos sem `Authorization: Bearer <access>` válido → 401 `unauthorized` com `WWW-Authenticate: Bearer`.
 
 ## Usuário
 
