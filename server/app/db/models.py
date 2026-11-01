@@ -107,6 +107,7 @@ class VersePlan(Base):
     verse_ref: Mapped[str] = mapped_column(String(50), nullable=False)  # canônico USFM, ex.: "JHN 3:16"
     theme: Mapped[str | None] = mapped_column(String(100))
     special_day: Mapped[str | None] = mapped_column(String(50))  # chave do calendário (ex.: "pascoa")
+    position: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")  # ordem do rodízio
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=sql_text("true"))
 
     __table_args__ = (

@@ -73,9 +73,10 @@ Dep.: 1.x, 2.x, 0.2
 
 - [x] **3.1 Calendário** `domain/calendar.py`: computus + datas da tabela de `CONTEUDO_E_LLM.md` §2.
   Aceite: testes das datas listadas (Páscoa 2025–2027, 2030; Corpus Christi 2026).
-- [ ] **3.2 Plano de versículos**: montar acervo próprio em `server/data/verse_plan.*` (≥ 366 referências,
+- [x] **3.2 Plano de versículos**: montar acervo próprio em `server/data/verse_plan.*` (≥ 366 referências,
   com tema e datas especiais; o agente propõe só **referências**, o texto vem da BLIVRE) + tabela `verse_plan`;
-  regra de não repetição em 365 dias. Lista revisada pelo Marcos [manual]. Aceite: simulação de 2 anos sem repetição indevida; todas as refs existem na BLIVRE.
+  regra de não repetição em 365 dias. Lista revisada pelo Marcos [manual].
+- [ ] **3.2b Revisar `server/data/verse_plan.csv`** [manual] — Marcos confere temas e escolhas (403 + 32 refs). Aceite: simulação de 2 anos sem repetição indevida; todas as refs existem na BLIVRE.
 - [ ] **3.3 Citações curadas** (L5 ✅): montar o acervo de domínio público em `server/data/quotes.*` (texto, autor,
   obra, localização, URL da fonte, idioma original, tradução do projeto?) + seleção por tags e janela de repetição.
   Lista revisada pelo Marcos [manual] antes de produção.

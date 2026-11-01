@@ -21,9 +21,13 @@
 ## 2. Escolha do versículo-base
 
 Ordem de prioridade para a data D:
-1. **Data especial** (calendário abaixo) → versículo do conjunto daquela data.
-2. **Plano de versículos** (acervo próprio em `server/data/`, ≥ 366 entradas) → próximo versículo não usado
-   nos últimos 365 dias.
+1. **Data especial** (calendário abaixo) → um dos versículos daquela data, o menos usado recentemente
+   (alternam entre os anos).
+2. **Plano de versículos** (`server/data/verse_plan.csv`: 403 versículos em 31 temas + 32 de datas especiais)
+   → rodízio na ordem do plano (temas intercalados), continuando do último usado e pulando o que saiu
+   nos últimos 365 dias. Simulação de 2 anos em `tests/test_verse_plan.py`.
+   O arquivo tem só referências; o carregador (`python -m app.cli carregar-dados`) recusa referência
+   inexistente, repetida ou sobreposta entre dias comuns.
 3. Registrar `verse_ref` em `studies` para evitar repetição.
 
 ### Calendário de datas especiais (fuso America/Sao_Paulo)

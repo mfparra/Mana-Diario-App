@@ -30,6 +30,30 @@ CHECK_VERSE = "Sl 23.1"
 CHECK_CANDIDATES = ("Jo 10.11", "Is 40.11", "Ez 34.11-12", "1Pe 5.4", "Hb 13.20")
 
 
+async def load_data(settings: Settings) -> int:
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    from app.domain.verse_plan import load_plan, plan_issues
+    from app.services.content_data import sync_verse_plan
+
+    if not settings.database_url:
+        print("DATABASE_URL não configurada", file=sys.stderr)
+        return 2
+    plan = load_plan()
+    if issues := plan_issues(plan):
+        print("plano de versículos com problemas:\n" + "\n".join(issues), file=sys.stderr)
+        return 1
+    engine = create_async_engine(settings.database_url)
+    try:
+        async with async_sessionmaker(engine)() as session:
+            r = await sync_verse_plan(session, plan)
+    finally:
+        await engine.dispose()
+    print(f"plano de versículos: {len(plan)} entradas ({r.inserted} novas, {r.updated} alteradas, "
+          f"{r.deactivated} desativadas)", file=sys.stderr)  # fmt: skip
+    return 0
+
+
 def load_prompt(name: str) -> tuple[str, str]:
     """Arquivo `prompts/<name>.md` com seções `# system` e `# user` → (system, user_template)."""
     text = (PROMPTS / f"{name}.md").read_text()
@@ -105,6 +129,7 @@ def main(argv: list[str] | None = None) -> int:
     chk = sub.add_parser("llm-check", help="verifica o provedor LLM e gera um estudo de teste")
     chk.add_argument("--env-file", type=Path, help="lê as variáveis deste arquivo (ex.: infra/.env)")
     chk.add_argument("--saida", choices=["texto", "json"], default="texto")
+    sub.add_parser("carregar-dados", help="sincroniza server/data/ com o banco")
     exp = sub.add_parser("export-openapi", help="grava docs/openapi.json")
     exp.add_argument("--saida", type=Path, default=DOCS / "openapi.json")
     args = ap.parse_args(argv)
@@ -112,6 +137,8 @@ def main(argv: list[str] | None = None) -> int:
         args.saida.write_text(openapi_json())
         print(f"OpenAPI gravado em {args.saida}", file=sys.stderr)
         return 0
+    if args.cmd == "carregar-dados":
+        return asyncio.run(load_data(Settings()))
     settings = Settings(_env_file=args.env_file) if args.env_file else Settings()
     if args.cmd == "llm-check":
         return asyncio.run(llm_check(settings, as_json=args.saida == "json"))

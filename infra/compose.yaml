@@ -52,7 +52,7 @@ services:
     <<: *app
     image: localhost/mana-api:latest
     build: { <<: *build, target: api }
-    command: ["alembic", "upgrade", "head"]
+    command: ["sh", "-c", "alembic upgrade head && python -m app.cli carregar-dados"]
     restart: "no"
     networks: [mana-net]
     depends_on:
