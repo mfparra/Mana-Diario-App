@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel
 
 from app.core.config import Settings, get_settings
+from app.db.session import check_db, get_engine
 from app.llm.health import check_llm
 from app.services.health import HealthService
 
@@ -19,8 +20,7 @@ class HealthOut(BaseModel):
 
 def get_health_service(settings: Settings = Depends(get_settings)) -> HealthService:
     async def db_check() -> str:
-        # Substituído pela verificação real do PostgreSQL na tarefa 2.2.
-        return "not_configured"
+        return await check_db(get_engine())
 
     async def today_published() -> bool:
         # Substituído pela consulta a `studies` na tarefa 4.4.

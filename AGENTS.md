@@ -106,6 +106,10 @@ mana-diario-app/
   Use `distrobox-host-exec podman compose ...` (confirmar na Fase 2).
 - Servidor: `cd server && uv run pytest` / `uv run ruff check . && uv run ruff format --check .`;
   rodar local sem contêiner: `uv run uvicorn app.main:app --port 8000` → `curl localhost:8000/v1/health`
+- Testes de banco: `server/scripts/test-db.sh up` (Postgres descartável em 127.0.0.1:55432) e
+  `TEST_DATABASE_URL=postgresql+psycopg://mana:mana@127.0.0.1:55432/mana_test uv run pytest`; sem a variável, são pulados.
+- Migrações: `DATABASE_URL=... uv run alembic upgrade head`; nova revisão:
+  `uv run alembic revision --autogenerate -m "..."` (revisar o arquivo gerado).
 - Subir stack local: `distrobox-host-exec podman compose -f infra/compose.yaml up -d`
 - Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD`
 - Bíblia: `cd tools/biblia && uv run python importar_blivre.py` (padrão: `fonte/porbr2018_usfm.zip` → `build/blivre.sqlite`);

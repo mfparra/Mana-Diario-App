@@ -45,15 +45,18 @@ Um repositório com `android/`, `server/`, `tools/` e `infra/`. Motivos: o contr
 | Tabela | Campos-chave |
 |---|---|
 | `users` | id (uuid), google_sub (único), email, name, photo_url, created_at, deleted_at |
-| `refresh_tokens` | id, user_id, token_hash, expires_at, revoked_at, device_label |
-| `studies` | date (PK), status (`draft`/`published`/`failed`), payload (jsonb), schema_version, verse_ref, quote_id, model, prompt_version, generated_at, published_at |
-| `generation_jobs` | id, kind (`daily`/`personal`), date, user_id?, status, attempts, last_error, created_at |
-| `verse_plan` | date ou chave de calendário, verse_ref, theme?, special_day? — origem: acervo próprio em `server/data/` |
-| `curated_quotes` | id, text, author, source, tags, last_used_at |
+| `refresh_tokens` | id, user_id, family_id (detecção de reuso), token_hash, expires_at, revoked_at, replaced_by_id, device_label |
+| `studies` | date (PK), status (`draft`/`published`/`failed`), payload (jsonb), etag, schema_version, verse_ref, special_day, quote_id, provider, model, prompt_version, is_fallback, generated_at, published_at |
+| `generation_jobs` | id, kind (`daily`/`personal`), date, user_id?, status (`pending`/`running`/`done`/`failed`), priority, attempts, last_error, created_at, updated_at |
+| `verse_plan` | id, verse_ref (USFM canônico, ex.: `JHN 3:16`), theme?, special_day? (chave do calendário), active — origem: acervo próprio em `server/data/` |
+| `curated_quotes` | id, text, author (não vazio), source, tags (text[]), active, last_used_at |
 | `user_profiles` | user_id, encrypted_payload (bytea), consent_at, consent_version, updated_at |
-| `personal_studies` | user_id, date, payload (jsonb), generated_at — PK (user_id, date) |
-| `subscriptions` | user_id, product_id, purchase_token_hash, status, expires_at, auto_renewing, last_verified_at |
+| `personal_studies` | user_id, date, payload (jsonb), provider, model, prompt_version, generated_at — PK (user_id, date) |
+| `subscriptions` | id, user_id, product_id, purchase_token_hash, status, expires_at, auto_renewing, acknowledged, created_at, last_verified_at |
 | `notes` | user_id, date, encrypted_body (bytea), version (int), updated_at, deleted_at — PK (user_id, date) |
+
+Todas as tabelas com `user_id` usam `ON DELETE CASCADE` (excluir a conta apaga tudo). Modelos em `server/app/db/models.py`;
+migrações em `server/migrations/` (testadas em Postgres real: ida e volta + sincronia modelo↔migração).
 
 `studies.payload` guarda o estudo completo já com o **texto bíblico resolvido**, para que a
 resposta da API seja estática e cacheável (ETag = hash do payload).

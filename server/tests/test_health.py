@@ -86,3 +86,21 @@ def test_llm_extra_body_aceita_json_do_env(monkeypatch):
     s = Settings()
     assert s.llm_extra_body == {"chat_template_kwargs": {"enable_thinking": False}}
     assert s.llm_api_key is None
+
+
+async def test_check_db():
+    import os
+
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    from app.db.session import check_db
+
+    assert await check_db(None) == "not_configured"
+    bad = create_async_engine("postgresql+psycopg://x:y@127.0.0.1:1/nada")
+    assert await check_db(bad) == "error"
+    await bad.dispose()
+    url = os.environ.get("TEST_DATABASE_URL")
+    if url:
+        good = create_async_engine(url)
+        assert await check_db(good) == "ok"
+        await good.dispose()

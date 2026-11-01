@@ -54,7 +54,7 @@ Dep.: 0.4
 
 - [x] **2.1 Projeto** `server/` com `uv`, FastAPI, Pydantic Settings, ruff, pytest; estrutura de camadas
   conforme `ARQUITETURA.md`. Aceite: `uv run pytest` e `ruff` passam; `GET /v1/health` responde.
-- [ ] **2.2 Banco**: SQLAlchemy 2 + Alembic; migração inicial com todas as tabelas de `ARQUITETURA.md` §3.
+- [x] **2.2 Banco**: SQLAlchemy 2 + Alembic; migração inicial com todas as tabelas de `ARQUITETURA.md` §3.
   Aceite: `alembic upgrade head` num Postgres limpo; teste de migração ida e volta.
 - [ ] **2.2b Containerfile** `server/Containerfile` multi-stage (alvos `api` e `worker`), rootless, `uv`, healthcheck.
   Aceite: `podman build` funciona; imagem roda como usuário não-root; nenhum segredo na imagem (`podman history`).
