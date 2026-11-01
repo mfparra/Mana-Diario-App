@@ -34,7 +34,8 @@ async def admin(api_db):
         erro = "LlmInvalidOutput: resposta inválida"
         await s.execute(
             text(
-                "INSERT INTO generation_jobs (kind, date, status, last_error) VALUES ('daily', '2026-11-02', 'failed', :e)"
+                "INSERT INTO generation_jobs (kind, date, status, last_error) "
+                "VALUES ('daily', '2026-11-02', 'failed', :e)"
             ),
             {"e": erro},
         )
