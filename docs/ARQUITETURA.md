@@ -1,0 +1,152 @@
+# Arquitetura
+
+## 1. Visão geral
+
+```
+┌────────────────────────── Android (com.marcosparra.manadiario) ──────────────────────────┐
+│  Compose UI ─ ViewModels ─ Repositórios ─┬─ Room: cache, anotações, favoritos, marcações │
+│                                          ├─ Room (asset): blivre.sqlite (somente leitura)│
+│                                          ├─ DataStore: preferências + tokens (cifrados)  │
+│                                          └─ Retrofit ──────────────┐                     │
+│  WorkManager: sync diário + notificação   AdMob/UMP   Play Billing │                     │
+└────────────────────────────────────────────────────────────────────┼─────────────────────┘
+                                                                     │ HTTPS / JSON (v1)
+┌──────────────────────────── Servidor (podman compose) ─────────────┼─────────────────────┐
+│  Caddy (TLS) ──> api (FastAPI) ──> PostgreSQL                      ▼                     │
+│                    │   └─ blivre.sqlite (somente leitura)                                │
+│                    └─ verificação Google ID token / Play Developer API                   │
+│  worker (agendador) ──> pipeline de geração ──> LlmClient ──> qualquer LLM (config .env) │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+      hoje: rede podman `llm-net` → contêiner `llm` (llama.cpp, API OpenAI) http://llm:8081/v1
+      amanhã: outro servidor local ou API externa — só muda o .env (ver LLM_SERVER.md)
+```
+
+## 2. Monorepo
+
+Um repositório com `android/`, `server/`, `tools/` e `infra/`. Motivos: o contrato da API e o
+`blivre.sqlite` são compartilhados; uma única fila de trabalho (`PLANO.md`) para o agente.
+
+## 3. Servidor
+
+### Camadas
+- `app/api/` — routers FastAPI (validação de entrada, auth, serialização). Sem regra de negócio.
+- `app/services/` — casos de uso: `StudyService`, `GenerationService`, `AuthService`,
+  `SubscriptionService`, `ProfileService`.
+- `app/domain/` — modelos puros: referência bíblica, calendário litúrgico, schema do estudo.
+- `app/db/` — modelos SQLAlchemy, repositórios, sessão.
+- `app/llm/` — `LlmClient` (interface) + `OpenAICompatibleClient` (padrão; serve o llm-server atual)
+  + `FakeLlmClient`. Único lugar com particularidades de provedor/modelo.
+- `app/notes/` — sincronização de anotações (criptografia, versão otimista).
+- `app/bible/` — acesso ao `blivre.sqlite` e parser de referências em português.
+- `worker/` — agendador (APScheduler ou laço simples) que chama `GenerationService`.
+
+### Tabelas principais (PostgreSQL)
+
+| Tabela | Campos-chave |
+|---|---|
+| `users` | id (uuid), google_sub (único), email, name, photo_url, created_at, deleted_at |
+| `refresh_tokens` | id, user_id, token_hash, expires_at, revoked_at, device_label |
+| `studies` | date (PK), status (`draft`/`published`/`failed`), payload (jsonb), schema_version, verse_ref, quote_id, model, prompt_version, generated_at, published_at |
+| `generation_jobs` | id, kind (`daily`/`personal`), date, user_id?, status, attempts, last_error, created_at |
+| `verse_plan` | date ou chave de calendário, verse_ref, theme?, special_day? — origem: banco do site |
+| `curated_quotes` | id, text, author, source, tags, last_used_at |
+| `user_profiles` | user_id, encrypted_payload (bytea), consent_at, consent_version, updated_at |
+| `personal_studies` | user_id, date, payload (jsonb), generated_at — PK (user_id, date) |
+| `subscriptions` | user_id, product_id, purchase_token_hash, status, expires_at, auto_renewing, last_verified_at |
+| `notes` | user_id, date, encrypted_body (bytea), version (int), updated_at, deleted_at — PK (user_id, date) |
+
+`studies.payload` guarda o estudo completo já com o **texto bíblico resolvido**, para que a
+resposta da API seja estática e cacheável (ETag = hash do payload).
+
+### Geração do estudo diário
+1. Worker roda a cada hora e garante estudos publicados de **hoje até D+7**.
+2. Para cada data faltante: resolve versículo-base (calendário especial > plano de versículos),
+   escolhe citação curada, monta candidatos de leitura complementar, chama a LLM.
+3. Valida JSON (Pydantic), valida referências contra a BLIVRE, aplica regras de conteúdo.
+4. Até 3 tentativas; se falhar, marca `failed`, registra erro e alerta no log.
+   **Fallback**: se hoje não tiver estudo publicado, a API serve o estudo mais recente com aviso
+   ou um estudo de reserva (pool pré-gerado) — ver `CONTEUDO_E_LLM.md`.
+
+### Geração "Para você" (premium)
+- **Lote de madrugada**: depois que o estudo de D está publicado, o worker enfileira um job `personal`
+  para cada premium com perfil (janela 01:00–05:00, 1 requisição por vez — o llm-server é compartilhado).
+- **Sob demanda** só se faltar (perfil editado hoje, novo assinante): `GET /v1/studies/{date}/personal`
+  cria job prioritário e responde `202`; o app mostra "preparando seu texto", consulta a cada 10 s
+  enquanto a tela está aberta e o `SyncWorker` busca depois. Com modelos lentos (1–3 min) isso é esperado.
+- Entrada: estudo do dia + perfil descriptografado em memória. Nunca logar o prompt completo.
+
+### Anotações
+- Uma anotação por (usuário, data). O app é a fonte imediata (salva local a cada pausa de digitação)
+  e sincroniza: `PUT /v1/notes/{date}` com `base_version`; servidor aceita se `base_version == version`,
+  senão `409` com a versão do servidor → o app guarda as duas e pede ao usuário para escolher/mesclar.
+- Exclusão = marca `deleted_at` (tombstone) para propagar a outros aparelhos; limpeza após 30 dias.
+- Pull incremental: `GET /v1/notes?updated_since=<instante>`.
+
+## 4. App Android
+
+### Módulos e pacotes
+Começar com um único módulo `:app`, organizado por feature:
+`core/` (design system, rede, banco, auth, ads, billing), `feature/today`, `feature/bible`,
+`feature/history`, `feature/profile`, `feature/premium`, `feature/onboarding`.
+
+### Bancos locais
+- **`mana_cache.db`** (Room, gravável): `cached_studies` (date, json, etag, fetched_at),
+  `cached_personal` (date, json), `notes` (date, body, version, local_updated_at, sync_state
+  [`synced`/`pending`/`conflict`], server_body_on_conflict), `favorites`, `highlights` (ref, cor),
+  `bookmarks`, `reading_position`. FTS4 sobre `notes.body` para busca nas anotações.
+- **`blivre.db`** (Room `createFromAsset`, somente leitura): `books`, `verses`, `verses_fts` (FTS4).
+  O schema gerado pelo script **precisa bater exatamente** com as entidades Room
+  (usar o schema exportado do Room como referência no script — ver Fase 1).
+
+### Cache e sincronização
+- Abrir "Hoje": mostra o cache imediatamente; em paralelo faz `GET` com `If-None-Match`.
+- `SyncWorker` (WorkManager, periódico ~12 h, com rede): busca hoje, preenche dias faltantes do histórico
+  e faz push/pull das anotações. `NotesPushWorker` (único, com rede) é disparado após cada edição.
+- `DailyNotificationWorker`: agendado para o horário escolhido; pré-carrega o estudo e notifica.
+- Logout: tenta enviar anotações pendentes; avisa se alguma não sincronizou; apaga tokens,
+  `cached_personal`, anotações e dados de perfil; mantém Bíblia e estudos gerais.
+
+### Navegação e deep links
+Rotas: `today`, `study/{date}`, `bible/{book}/{chapter}?verse={v}&end={e}`, `bible/search`,
+`history`, `favorites`, `notes` (todas as anotações), `note/{date}` (editor em tela cheia),
+`profile`, `premium`, `about`.
+Tocar numa referência no estudo navega para `bible/...` com destaque do(s) versículo(s).
+Deep link externo opcional: `manadiario://study/2026-11-01`.
+
+## 5. Segurança
+
+- HTTPS obrigatório; `network_security_config` sem cleartext em release (exceto debug → IP local).
+- ID token Google validado no servidor (assinatura, `aud` = Web client ID, `iss`, `exp`).
+- JWT próprio assinado (HS256 com segredo forte ou EdDSA); refresh token rotativo com detecção de reuso.
+- Tokens no app: DataStore cifrado com Tink (chave no Android Keystore).
+- Perfil premium e anotações: criptografia de campo no servidor (chave em variável de ambiente, rotação documentada).
+- Rate limit por usuário nos endpoints de geração; endpoints admin protegidos por token separado.
+- Logs sem PII (sem email, sem texto do perfil, sem prompt personalizado).
+
+## 6. Contêineres (Podman)
+
+Tudo do servidor roda em contêineres, orquestrados por `infra/compose.yaml` com `podman compose`:
+
+| Serviço | Imagem | Rede | Volumes | Observação |
+|---|---|---|---|---|
+| `proxy` | `caddy` oficial | `mana-net` | `mana-caddy` (certificados) | Única porta exposta (80/443); só em produção/staging |
+| `api` | `server/Containerfile` (alvo `api`) | `mana-net`, `llm-net` (externa) | `blivre.sqlite` somente leitura | Uvicorn, usuário não-root, healthcheck em `/v1/health` |
+| `worker` | mesma imagem (alvo `worker`) | `mana-net`, `llm-net` (externa) | `blivre.sqlite` somente leitura | Gera estudos e "Para você" |
+| `db` | `postgres:16` oficial | `mana-net` | `mana-pgdata` | Sem porta publicada no host em produção |
+| `llm` | *(projeto llm-server, fora deste compose)* | `llm-net` | — | Compartilhado; o Maná só entra na rede |
+
+- `Containerfile` multi-stage (build com `uv` → runtime slim), rootless, sem segredos na imagem.
+- Migrações Alembic rodam num passo `migrate` (serviço one-shot ou `podman compose run --rm api alembic upgrade head`).
+- Em desenvolvimento, a `api` publica `127.0.0.1:8000` (o celular de teste acessa pelo IP da máquina
+  via override `compose.dev.yaml`); em produção só o `proxy` publica portas.
+- Backup: `podman exec db pg_dump` agendado no host (ou contêiner `backup`), com retenção documentada.
+
+## 7. Ambientes
+
+| Ambiente | API | LLM | Ads | Billing |
+|---|---|---|---|---|
+| debug | `http://<IP-da-máquina>:8000` | llm-server local (`llm-net`) | IDs de teste | contas de teste licenciadas |
+| staging | servidor definitivo, subdomínio staging | llm-server | IDs de teste | teste interno Play |
+| release | servidor definitivo | qualquer LLM configurada (`LLM_*`) | IDs reais | produção |
+
+`BuildConfig.API_BASE_URL` por build type; IDs reais via `local.properties`/variáveis de CI.

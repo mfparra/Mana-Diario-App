@@ -1,0 +1,94 @@
+# LLM — integração e troca de provedor
+
+## 1. Princípio
+
+O servidor do Maná Diário deve conseguir usar **qualquer servidor LLM** só mudando configuração.
+Hoje usa o **llm-server compartilhado** (testes iniciais); depois, uma LLM mais confiável — local
+ou em API externa. Toda particularidade de modelo/provedor fica dentro do adaptador.
+
+## 2. O llm-server atual (lido em 2026-10-31)
+
+Caminho: `/home/marcos/OneDriveLocalSync/LinguagensProgramacao/Android/CacaPalavras2/llm-server`
+
+- É **só um contêiner `llm`** com a imagem oficial `ghcr.io/ggml-org/llama.cpp:server` (CPU),
+  `restart: always`, modelo travado na RAM (`--load-mode mmap+mlock`). Não há FastAPI nele
+  (o FastAPI do BuscaPalavras fica no `server/` do próprio BuscaPalavras).
+- API **compatível com OpenAI**: `POST /v1/chat/completions`, `GET /health`.
+  - Dentro da rede podman externa `llm-net`: `http://llm:8081/v1`
+  - No host: `http://127.0.0.1:8081/v1` (só loopback)
+- Configuração via `.env`: `LLM_HF_REPO`, `LLM_ALIAS` (nome do modelo na API), `LLM_CTX`,
+  `LLM_PARALLEL`, `LLM_THREADS`, `LLM_MEM_LIMIT` (5g), `LLM_PORT`.
+- Valores ativos hoje: **Gemma 4 E4B Q4_K_M com thinking** (`LLM_ALIAS=gemma-4-e4b-it`),
+  **contexto 4096**, **1 requisição por vez** (as demais esperam na fila), 4 threads.
+  Alternativa rápida documentada: Qwen3-4B-Instruct-2507 Q6_K.
+- Benchmark do README (puzzle do BuscaPalavras): Gemma 4 com thinking ≈ 51 s por pedido,
+  qualidade de pt-BR impecável; Qwen3 4B ≈ 6 s, boa qualidade.
+- Pegadinha documentada: **Gemma 4 + `response_format: json_object` devolve conteúdo vazio** no llama.cpp
+  atual. Para Gemma, omitir `response_format`; para desligar o raciocínio, enviar
+  `chat_template_kwargs: {"enable_thinking": false}`.
+
+### Consequências para o Maná
+- **Rede:** `infra/compose.yaml` do Maná declara `networks: { llm-net: { external: true } }`
+  nos serviços `api`/`worker` → `LLM_BASE_URL=http://llm:8081/v1`.
+- **Tempo:** um estudo (≈ 700–1000 tokens de saída + raciocínio) pode levar **1–3 min** com o Gemma.
+  Por isso: estudo geral pré-gerado D+7 e "Para você" pré-gerado de madrugada (ver `CONTEUDO_E_LLM.md` §7).
+- **Fila compartilhada:** com `LLM_PARALLEL=1`, a geração em lote do Maná atrasa o BuscaPalavras.
+  O worker roda lotes em horário de baixo uso (madrugada) e com **no máximo 1 requisição simultânea**.
+- **Contexto 4096:** prompt + saída + raciocínio precisam caber. Orçamento do prompt do estudo:
+  ≤ 1.800 tokens de entrada; `max_tokens` ≤ 2.000. O adaptador mede e falha cedo se estourar.
+- **Mudanças no llm-server** (modelo, contexto, paralelismo) só com avaliação do BuscaPalavras,
+  registradas em `DECISOES.md`. A princípio **nenhuma mudança é necessária**.
+
+## 3. Adaptador `LlmClient`
+
+```python
+class LlmClient(Protocol):
+    async def generate_json(
+        self, *, system: str, user: str, schema: type[BaseModel],
+        temperature: float | None = None, max_tokens: int | None = None,
+    ) -> BaseModel: ...
+    async def health(self) -> LlmHealth: ...
+```
+
+Implementações:
+- **`OpenAICompatibleClient`** (padrão) — llama.cpp, Ollama, vLLM, LM Studio, OpenRouter, OpenAI e
+  qualquer outro com `/v1/chat/completions`.
+- Outros provedores (ex.: API nativa da Anthropic ou do Google) entram como **nova classe** sem tocar
+  no resto do código; seleção por `LLM_PROVIDER`.
+- `FakeLlmClient` para testes (respostas gravadas), nunca o servidor real.
+
+### Robustez de JSON (independente do modelo)
+1. Modo de formato configurável: `LLM_JSON_MODE = none | json_object | json_schema`
+   (Gemma 4 no llama.cpp → `none`; Qwen/OpenAI → `json_schema`).
+2. Sempre: remover blocos de raciocínio (`<think>…</think>` e similares, configurável), extrair o
+   primeiro objeto JSON do texto, validar com Pydantic.
+3. Inválido → reenviar com o erro de validação anexado (até `LLM_MAX_RETRIES`).
+
+## 4. Configuração (`infra/.env`)
+
+| Variável | Exemplo (hoje) | Descrição |
+|---|---|---|
+| `LLM_PROVIDER` | `openai_compatible` | Implementação do adaptador |
+| `LLM_BASE_URL` | `http://llm:8081/v1` | URL base da API |
+| `LLM_API_KEY` | *(vazio)* | Chave, se o provedor exigir |
+| `LLM_MODEL` | `gemma-4-e4b-it` | Nome do modelo (= `LLM_ALIAS` do llm-server) |
+| `LLM_JSON_MODE` | `none` | Ver §3 |
+| `LLM_EXTRA_BODY` | `{}` | JSON mesclado no corpo (ex.: `{"chat_template_kwargs":{"enable_thinking":false}}`) |
+| `LLM_STRIP_THINKING` | `true` | Remover raciocínio da resposta |
+| `LLM_TEMPERATURE` | `0.7` | Padrão; os prompts podem sobrescrever |
+| `LLM_MAX_TOKENS` | `2000` | Limite de saída |
+| `LLM_CONTEXT_TOKENS` | `4096` | Para o orçamento de prompt |
+| `LLM_TIMEOUT_S` | `300` | Inclui espera na fila do llm-server |
+| `LLM_MAX_CONCURRENCY` | `1` | Requisições simultâneas do Maná |
+| `LLM_MAX_RETRIES` | `3` | Tentativas por geração |
+| `LLM_SENDS_PERSONAL_DATA` | `true` | **Precisa ser decisão explícita** ao apontar para provedor externo (ver `PRIVACIDADE_LGPD.md`) |
+
+Perfis prontos em `infra/llm-profiles/` (`llm-server-gemma.env`, `llm-server-qwen.env`, `ollama.env`,
+`openai-compatible-externo.env`) para trocar copiando um arquivo.
+
+## 5. Comando de verificação
+
+`uv run python -m app.cli llm-check` → chama `health`, gera um estudo de teste com o prompt real e mostra
+tempo, tokens, JSON validado e falhas. Usar sempre que trocar de provedor/modelo.
+
+O estudo e o "Para você" gravam `model` e `provider` usados, para comparar qualidade entre LLMs.

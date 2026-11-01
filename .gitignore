@@ -1,0 +1,40 @@
+# Segredos
+.env
+*.env
+!.env.example
+google-services.json
+*.jks
+*.keystore
+service-account*.json
+local.properties
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+*.iml
+captures/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Dados gerados
+tools/biblia/build/
+android/app/src/main/assets/blivre.sqlite
+
+# Build / gradle / IDE
+build/
+.gradle/
+.idea/
+*.apk
+*.aab
+*.pem
+*.key
+secrets/
+.venv/
+.DS_Store
