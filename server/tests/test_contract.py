@@ -58,5 +58,7 @@ async def test_so_health_e_auth_sao_publicas():
             url = re.sub(r"\{[^}]+\}", "2026-11-01", path)
             for method in ops:
                 r = await c.request(method.upper(), url, json={})
-                assert r.status_code == 401, f"{method.upper()} {path} → {r.status_code}"
+                # admin usa X-Admin-Token (403; 503 se ADMIN_TOKEN não estiver configurado)
+                esperado = {403, 503} if path.startswith("/v1/admin/") else {401}
+                assert r.status_code in esperado, f"{method.upper()} {path} → {r.status_code}"
     assert set(spec["paths"]) >= PUBLICAS

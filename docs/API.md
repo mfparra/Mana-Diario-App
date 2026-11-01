@@ -9,7 +9,7 @@ ao mudar código, atualize aqui. Testes (`server/tests/test_contract.py`) falham
 desatualizado, se uma rota implementada não estiver descrita aqui ou se uma rota protegida responder sem token.
 
 Implementado até agora (Fase 4): `/health`, `/auth/*`, `/me` (+ `/me/export`), `/studies/*` (exceto `personal`),
-`/notes/*`. Pendentes: `/studies/{date}/personal` e `/me/profile` (Fase 9), `/subscriptions/*` (Fase 8), `/admin/*` (3.10).
+`/notes/*`, `/admin/*`. Pendentes: `/studies/{date}/personal` e `/me/profile` (Fase 9), `/subscriptions/*` (Fase 8).
 
 ## Formato de erro
 
@@ -178,8 +178,12 @@ Recebe RTDN via Pub/Sub push; autenticado por token do Pub/Sub.
 
 - `GET /health` → `{ "status": "ok|error", "db": "ok|error|not_configured", "llm": "ok|degraded", "today_published": true }`
   — `503` se o banco falhar (`status: error`); LLM fora do ar só marca `degraded` (a API continua servindo estudos já gerados).
-- `GET /admin/studies?status=failed` · `POST /admin/studies/{date}/regenerate` ·
-  `POST /admin/studies/{date}/publish` — header `X-Admin-Token`.
+- Admin (header `X-Admin-Token` = `ADMIN_TOKEN`; sem token/errado → 403; não configurado → 503):
+  - `GET /admin/studies?status=failed&limit=60` → `{ "items": [ {date, status, verse_ref, title, provider, model,
+    prompt_version, generated_at, published_at, last_error} ] }`
+  - `POST /admin/studies/{date}/regenerate` → 202 `{ "job_id": 12, "status": "pending" }` (o worker gera com `force`).
+  - `POST /admin/studies/{date}/publish` → publica um rascunho que tem conteúdo (409 se não tem).
+  - `POST /admin/studies/{date}/unpublish` → volta para rascunho (o app passa a receber 404 nessa data).
 
 ## Rate limits (iniciais)
 - `/auth/*`: 10/min por IP · `/studies/*`: 60/min por usuário · `/studies/{d}/personal`: 20/h por usuário
