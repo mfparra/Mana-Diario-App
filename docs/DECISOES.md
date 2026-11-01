@@ -3,29 +3,29 @@
 Legenda de status:
 
 - ✅ **Definido** — decidido pelo Marcos.
-- 🔁 **Herdado do web** — vale o que o site Maná Diário já faz; **confirmar na Fase 0** lendo o projeto web.
 - 🟡 **Proposto** — escolha padrão deste plano; pode ser trocada sem grande custo até a fase indicada.
 - ❓ **Pendente** — precisa de resposta do Marcos antes da fase indicada.
 
 Ao mudar o status de uma decisão, registre data e motivo na coluna "Notas".
 
-**Precedência:** requisitos do Marcos (✅) sempre vencem. O site web só preenche lacunas (🔁) —
-o app é muito mais completo e não deve ser limitado ao que o site faz.
+**Independência:** o app e o site web Maná Diário são projetos independentes (✅ D1). Nenhuma decisão,
+arquivo ou dado é herdado do site.
 
 ## Produto
 
 | # | Decisão | Status | Notas |
 |---|---|---|---|
-| P1 | App Android é o carro-chefe, com mais funções que o site | ✅ | |
+| D1 | **App independente do site web**: nada é lido, importado ou reaproveitado do projeto web (Bíblia, acervos, prompts, servidor) | ✅ | 2026-10-31, pedido do Marcos. Substitui a antiga tarefa 0.1 e o checklist "Herdado do web" |
+| P1 | App Android é o carro-chefe | ✅ | |
 | P2 | Estudo diário baseado em um versículo da BLIVRE | ✅ | |
-| P3 | Página do estudo mostra: nome "Maná Diário" + logo do maná, frase curta, versículo complementar, palavras-chave | ✅ | Logo em `docs/assets/logo-mana.svg` (mesmo do site) |
+| P3 | Página do estudo mostra: nome "Maná Diário" + logo do maná, frase curta, versículo complementar, palavras-chave | ✅ | Logo em `docs/assets/logo-mana.svg` |
 | P4 | Referência visual: layout do devocional em `docs/assets/referencia-design.png` | ✅ | Adaptado para coluna única no celular — ver `DESIGN.md` |
 | P5 | Leitor bíblico integrado, usável sozinho ou aberto ao tocar numa referência do estudo | ✅ | |
-| P6 | Datas especiais: Páscoa e móveis (ex.: Corpus Christi), Natal, Dia das Mães, Dia dos Pais | 🔁 | Definido no site; reaproveitar o mesmo calendário |
-| P7 | Acervo de versículos que dure mais de um ano | 🔁 | Reaproveitar o banco do site |
-| P8 | **"Pequena frase"** = citação curada (caixa escura, com autor), como no site | 🟡 | Interpretação deste plano. Alternativa: frase-síntese gerada pela LLM **além** da citação curada. Confirmar até a Fase 3 |
-| P9 | **Versículo complementar**: servidor oferece candidatos (referências cruzadas) e a LLM escolhe um; servidor valida | 🟡 | Se o site já resolve isso, herdar. Fonte de candidatos sugerida: referências cruzadas do OpenBible.info (CC BY) — confirmar licença |
-| P10 | Seções extras geradas: "aplicação prática" e "oração" curta | 🟡 | Herdar do site se ele tiver estrutura diferente |
+| P6 | Datas especiais: Páscoa e móveis (ex.: Corpus Christi), Natal, Dia das Mães, Dia dos Pais | 🟡 | Calendário próprio: tabela de `CONTEUDO_E_LLM.md` §2 |
+| P7 | Acervo de versículos que dure mais de um ano | 🟡 | Acervo próprio em `server/data/verse_plan.*` (≥ 366 referências validadas na BLIVRE), revisado pelo Marcos na tarefa 3.2 |
+| P8 | **"Pequena frase"** = citação curada (caixa escura, com autor) | ❓ | Sem o banco do site, é preciso montar um acervo curado do zero (ver L5). Alternativa: frase-síntese gerada pela LLM, sem autor. Definir até a Fase 3 |
+| P9 | **Versículo complementar**: servidor oferece candidatos (referências cruzadas) e a LLM escolhe um; servidor valida | 🟡 | Fonte de candidatos sugerida: referências cruzadas do OpenBible.info (CC BY) — confirmar licença na tarefa 3.4 |
+| P10 | Seções extras geradas: "aplicação prática" e "oração" curta | 🟡 | |
 | P11 | Funções extras do app: histórico, favoritos, compartilhar como imagem, notificação diária em horário escolhido | 🟡 | Widget, áudio (TTS) e planos de leitura ficam para a fase futura |
 | P12 | **Espaço de anotações pessoais em cada devocional do dia** | ✅ | 2026-10-31 — detalhes na seção "Anotações" |
 
@@ -34,10 +34,12 @@ o app é muito mais completo e não deve ser limitado ao que o site faz.
 | # | Decisão | Status | Notas |
 |---|---|---|---|
 | B1 | Tradução: Bíblia Livre (BLIVRE), salva localmente | ✅ | |
-| B2 | Mesmo arquivo-fonte da BLIVRE usado no site | 🔁 | Fase 0 localiza arquivo, formato e versão |
-| B3 | Um único `blivre.sqlite` gerado por script, usado pelo servidor e embarcado no app | 🟡 | Evita divergência de texto entre servidor e app |
+| B2 | Fonte: **eBible.org `porbr2018`** (Bíblia Livre, Textus Receptus, fev/2018), formato USFM | ✅ | 2026-10-31. Zip versionado em `tools/biblia/fonte/` com SHA-256; 66 livros, 31.102 versículos |
+| B3 | Um único `blivre.sqlite` gerado por script, usado pelo servidor e embarcado no app | 🟡 | Evita divergência de texto entre servidor e app. Schema em `tools/biblia/SCHEMA.md` |
+| B6 | Texto bíblico importado **sem alteração**: só saem os marcadores USFM; notas (`\f`) e referências de citação (`\rq`) vão para `footnotes`; títulos de salmos (`\d`) para `superscriptions`; palavras `\add` mantidas sem itálico | 🟡 | 2026-10-31. Espaços irregulares da fonte são preservados. Itálico das palavras `\add` pode voltar depois, se desejado |
+| B7 | Abreviações: Jó = "Jó" (a fonte usa "Jo" para Jó e João), Joel = "Jl" | 🟡 | 2026-10-31. Só apresentação |
 | B4 | Códigos de livro USFM internamente | 🟡 | |
-| B5 | Texto de atribuição/licença da BLIVRE na tela "Sobre" | 🔁 | Confirmar licença e texto exatos na fonte usada |
+| B5 | Texto de atribuição/licença da BLIVRE na tela "Sobre" | ✅ | 2026-10-31. CC BY 4.0 Brasil, texto sugerido pelos autores; em `tools/biblia/LICENCA_BLIVRE.md` e em `metadata.attribution` |
 
 ## Conteúdo / LLM
 
@@ -49,8 +51,8 @@ o app é muito mais completo e não deve ser limitado ao que o site faz.
 | L9 | **O servidor deve poder apontar para qualquer servidor LLM** só por configuração | ✅ | 2026-10-31. Adaptador `LlmClient`; padrão OpenAI-compatível; ver `LLM_SERVER.md` |
 | L10 | JSON robusto sem depender de `response_format` (Gemma 4 devolve vazio com `json_object`) | 🟡 | `LLM_JSON_MODE` configurável + extração/validação + nova tentativa |
 | L11 | Lotes de geração de madrugada, 1 requisição por vez, para não travar o BuscaPalavras | 🟡 | |
-| L4 | Prompts, tom teológico e regras de conteúdo | 🔁 | Partir dos prompts do site e adaptar para o schema do app |
-| L5 | Banco de citações curadas e regras de uso (repetição, autores) | 🔁 | Importar do site |
+| L4 | Prompts, tom teológico e regras de conteúdo | 🟡 | Prompts próprios a partir de `CONTEUDO_E_LLM.md` §6; amostras revisadas pelo Marcos (3.6) |
+| L5 | Banco de citações curadas e regras de uso (repetição, autores) | ❓ | Montar do zero. Quem fornece as citações (com autor e fonte verificáveis)? Ligado a P8. Definir até a Fase 3 |
 | L6 | Saída da LLM sempre em JSON validado por schema; até 3 tentativas; depois fallback | 🟡 | |
 | L7 | Estudo geral pré-gerado com 7 dias de antecedência pelo worker | 🟡 | Dá margem para falhas do llm-server |
 | L8 | Estudos publicados automaticamente após validação (sem revisão humana obrigatória) | ❓ | Alternativa: fila de aprovação no painel admin. Definir até a Fase 3 |
@@ -60,13 +62,13 @@ o app é muito mais completo e não deve ser limitado ao que o site faz.
 | # | Decisão | Status | Notas |
 |---|---|---|---|
 | S1 | API REST controla o estudo diário; app mantém cache | ✅ | |
-| S2 | Stack: FastAPI + PostgreSQL + Alembic | 🟡 | Se o site usa outra stack, perguntar se o app deve seguir a mesma |
-| S3 | Servidor do app = mesmo backend que gera o estudo do site? | ❓ | Recomendado: **uma única fonte** do estudo do dia, consumida por site e app. Definir até a Fase 2 |
+| S2 | Stack: FastAPI + PostgreSQL + Alembic | 🟡 | |
+| S3 | Servidor próprio do app, independente do backend do site | ✅ | 2026-10-31 (D1) |
 | S4 | **Servidor inteiro em contêineres Podman** (`api`, `worker`, `db`, `proxy`) com podman compose; testar local e depois levar ao servidor definitivo | ✅ | 2026-10-31: explicitado como regra no AGENTS.md |
 | S4a | Imagens rootless a partir de `Containerfile` (multi-stage, usuário não-root, `uv` para dependências) | 🟡 | |
 | S4b | Produção com `podman compose` + `restart: always` (como o llm-server) | 🟡 | Alternativa: Quadlet/systemd para subir com o boot sem sessão aberta — avaliar na Fase 10 |
 | S4c | Dados persistentes só em volumes nomeados (`mana-pgdata`, `mana-caddy`); `blivre.sqlite` dentro da imagem ou volume somente leitura | 🟡 | |
-| S5 | HTTPS em produção via Caddy (contêiner `proxy`) | 🟡 | Herdar a solução do site se já houver |
+| S5 | HTTPS em produção via Caddy (contêiner `proxy`) | 🟡 | |
 | S6 | "Hoje" definido em `America/Sao_Paulo`; servidor aceita até D+1 para fusos a leste | 🟡 | |
 | S7 | Domínio/URL pública da API | ❓ | Necessário antes do teste fechado na Play Store |
 
@@ -110,19 +112,3 @@ o app é muito mais completo e não deve ser limitado ao que o site faz.
 | N5 | Conflito entre aparelhos: versão otimista; em conflito, guardar as duas versões e o usuário escolhe | 🟡 | |
 | N6 | Referências bíblicas digitadas na anotação ("Jo 3.16") viram links para o leitor | 🟡 | |
 | N7 | A LLM **não** lê as anotações (nem no "Para você") | 🟡 | Possível recurso premium futuro, com consentimento próprio |
-
-## Herdado do web — checklist da Fase 0
-
-Usar **apenas** para pontos que os requisitos acima não definem.
-
-Preencher após ler o projeto web (caminho: `<INFORMAR>`):
-
-- [ ] Arquivo e formato da BLIVRE, versão, licença e texto de atribuição
-- [ ] Banco de versículos (formato, tamanho, como evita repetição)
-- [ ] Calendário de datas especiais (como calcula Páscoa e móveis; quais datas)
-- [ ] Banco de citações curadas (formato, campos, regras)
-- [ ] Prompts e parâmetros da LLM (temperatura, tamanho, tom)
-- [ ] Estrutura do estudo exibido no site (seções)
-- [ ] Stack do servidor, banco de dados, agendamento da geração
-- [ ] Cores e fontes do site
-- [ ] Hospedagem/HTTPS/domínio e como o podman compose roda no distrobox

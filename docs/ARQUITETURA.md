@@ -48,7 +48,7 @@ Um repositório com `android/`, `server/`, `tools/` e `infra/`. Motivos: o contr
 | `refresh_tokens` | id, user_id, token_hash, expires_at, revoked_at, device_label |
 | `studies` | date (PK), status (`draft`/`published`/`failed`), payload (jsonb), schema_version, verse_ref, quote_id, model, prompt_version, generated_at, published_at |
 | `generation_jobs` | id, kind (`daily`/`personal`), date, user_id?, status, attempts, last_error, created_at |
-| `verse_plan` | date ou chave de calendário, verse_ref, theme?, special_day? — origem: banco do site |
+| `verse_plan` | date ou chave de calendário, verse_ref, theme?, special_day? — origem: acervo próprio em `server/data/` |
 | `curated_quotes` | id, text, author, source, tags, last_used_at |
 | `user_profiles` | user_id, encrypted_payload (bytea), consent_at, consent_version, updated_at |
 | `personal_studies` | user_id, date, payload (jsonb), generated_at — PK (user_id, date) |
@@ -94,9 +94,9 @@ Começar com um único módulo `:app`, organizado por feature:
   `cached_personal` (date, json), `notes` (date, body, version, local_updated_at, sync_state
   [`synced`/`pending`/`conflict`], server_body_on_conflict), `favorites`, `highlights` (ref, cor),
   `bookmarks`, `reading_position`. FTS4 sobre `notes.body` para busca nas anotações.
-- **`blivre.db`** (Room `createFromAsset`, somente leitura): `books`, `verses`, `verses_fts` (FTS4).
-  O schema gerado pelo script **precisa bater exatamente** com as entidades Room
-  (usar o schema exportado do Room como referência no script — ver Fase 1).
+- **`blivre.db`** (Room `createFromAsset`, somente leitura): `books`, `verses`, `verses_fts` (FTS4, sem acento),
+  `footnotes`, `superscriptions`, `metadata`. O schema gerado pelo script **precisa bater exatamente** com as
+  entidades Room: ver `tools/biblia/SCHEMA.md`.
 
 ### Cache e sincronização
 - Abrir "Hoje": mostra o cache imediatamente; em paralelo faz `GET` com `If-None-Match`.

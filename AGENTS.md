@@ -9,11 +9,11 @@
 um estudo bíblico curto construído em torno de **um versículo da Bíblia Livre (BLIVRE)**,
 com um leitor bíblico completo e offline integrado.
 
-- O **site web Maná Diário** já existe e é o projeto irmão, mas o app é **muito mais completo**.
-  **Ordem de precedência:** (1) o que está escrito nestes docs/requisitos do Marcos →
-  (2) decisões do site, **somente** para pontos que os requisitos não cobrem → (3) perguntar.
-  Nunca rebaixe um requisito do app para ficar igual ao site.
-- O app tem **muito mais funções** que o site: leitor bíblico, **anotações pessoais em cada devocional**,
+- **App e site web Maná Diário são projetos independentes** (decisão de 2026-10-31). Nada é lido,
+  importado ou reaproveitado do projeto web: Bíblia, acervo de versículos, citações, calendário, prompts
+  e servidor são próprios deste repositório. **Ordem de precedência:** (1) o que está escrito nestes
+  docs/requisitos do Marcos → (2) perguntar ao Marcos.
+- Funções do app: leitor bíblico, **anotações pessoais em cada devocional**,
   histórico, favoritos, notificação diária, login Google, plano pago com estudo personalizado.
 - Monetização: **gratuito com Google AdMob** + **assinatura mensal** (Google Play Billing) que
   remove anúncios e libera a seção personalizada **"Para você"**.
@@ -37,8 +37,8 @@ Documentos de referência (leia o que for relevante antes de cada tarefa):
 
 1. **O texto bíblico nunca é gerado pela LLM.** Todo versículo exibido vem da base BLIVRE local,
    buscado por referência. A LLM só pode *sugerir referências*, que o servidor valida contra a base.
-2. **Citações curadas nunca são geradas pela LLM.** Vêm do banco curado (mesmo modelo do site web),
-   com autor/fonte preservados exatamente.
+2. **Citações curadas nunca são geradas pela LLM.** Vêm do banco curado próprio do app
+   (`server/data/`), com autor/fonte preservados exatamente.
 3. **Todo o resto do estudo é gerado pela LLM** do llm-server (título, corpo, aplicação, palavras-chave,
    texto personalizado "Para você"), sempre em **JSON validado por schema**.
 4. **O servidor é a fonte da verdade do estudo do dia.** O app só exibe e mantém **cache** (Room).
@@ -52,9 +52,8 @@ Documentos de referência (leia o que for relevante antes de cada tarefa):
    ou parâmetros dele sem avaliar esse impacto.
 7. **Segredos fora do git.** `.env`, `google-services.json`, chaves de serviço, keystores,
    IDs reais de AdMob ficam fora do repositório (há `.env.example` / `local.properties`).
-8. **Quando algo não estiver claro** (e só então): procure a decisão no projeto web; se encontrar, adote e
-   registre em `docs/DECISOES.md` como "Herdado do web". Se não encontrar, **pare e pergunte ao Marcos**
-   em vez de inventar — e registre como "Pendente".
+8. **Quando algo não estiver claro** (e só então): **pare e pergunte ao Marcos** em vez de inventar —
+   e registre como "Pendente" em `docs/DECISOES.md`. Não consultar o projeto web.
 9. **Anotações do usuário são dele.** A anotação de cada devocional funciona offline, sincroniza com o
    servidor, é criptografada em repouso e nunca é enviada à LLM sem decisão registrada.
 10. **Todo o servidor roda em contêineres Podman** — `api`, `worker`, `db` (PostgreSQL) e `proxy` (Caddy),
@@ -83,9 +82,6 @@ Documentos de referência (leia o que for relevante antes de cada tarefa):
 - Script que importa a BLIVRE e gera **um único** `blivre.sqlite`, usado pelo servidor (somente leitura)
   e embarcado no app como banco pré-empacotado do Room.
 
-> Se a Fase 0 mostrar que o projeto web usa outra stack de servidor, siga a regra 8:
-> registre a divergência e pergunte antes de mudar.
-
 ## 4. Estrutura do repositório
 
 ```
@@ -107,11 +103,13 @@ mana-diario-app/
 ## 5. Ambiente e comandos
 
 - O Claude Code roda **dentro de um distrobox**; lá `podman compose` não tinha provedor.
-  Use `distrobox-host-exec podman compose ...` (ou a solução adotada no projeto web — confirmar na Fase 0).
+  Use `distrobox-host-exec podman compose ...` (confirmar na Fase 2).
 - Servidor: `cd server && uv run pytest` / `uv run ruff check . && uv run ruff format --check .`
 - Subir stack local: `distrobox-host-exec podman compose -f infra/compose.yaml up -d`
 - Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD`
-- Bíblia: `cd tools/biblia && uv run python importar_blivre.py --entrada <arquivo> --saida build/blivre.sqlite`
+- Bíblia: `cd tools/biblia && uv run python importar_blivre.py` (padrão: `fonte/porbr2018_usfm.zip` → `build/blivre.sqlite`);
+  testes `uv run pytest`; lint `uv run ruff check . && uv run ruff format --check .`;
+  conferir/atualizar a fonte: `uv run python baixar_fonte.py`. Pacote `blivre` (parser de referências) é reutilizado pelo servidor.
 - App: `cd android && ./gradlew assembleDebug testDebugUnitTest lint`
 - llm-server (compartilhado): `/home/marcos/OneDriveLocalSync/LinguagensProgramacao/Android/CacaPalavras2/llm-server`
   — contêiner `llm` (llama.cpp), `curl 127.0.0.1:8081/health`; o compose do Maná entra na rede `llm-net`.

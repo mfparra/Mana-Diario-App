@@ -9,14 +9,15 @@ Premium personalizado: Fase 9. Publicação: Fase 10.
 
 ---
 
-## Fase 0 — Alinhamento com o projeto web e fundações
+## Fase 0 — Fundações
 
-- [ ] **0.1 Ler o projeto web Maná Diário** (caminho a informar pelo Marcos) **só para as lacunas**:
-  preencher o checklist "Herdado do web" em `DECISOES.md`. Requisitos do app (✅) não mudam por causa do site.
-  Aceite: checklist completo; divergências listadas como ❓ para o Marcos.
+> 2026-10-31: app independente do site web (DECISOES D1). A antiga 0.1 (ler o projeto web) foi removida.
+
+- [x] **0.1 Fonte da BLIVRE**: baixar da eBible.org (`porbr2018`, USFM), versionar o zip em `tools/biblia/fonte/`
+  com SHA-256 e script de download. Aceite: zip confere com o hash; 66 livros; licença registrada (B2).
 - [x] **0.2 Ler o llm-server** — feito no planejamento (2026-10-31), ver `LLM_SERVER.md` §2.
   Conferir se o `.env` dele mudou antes da Fase 3.
-- [ ] **0.3 Responder pendências bloqueantes** [manual] — S3 (backend único?), P8 (frase), L8 (revisão humana).
+- [ ] **0.3 Responder pendências bloqueantes** [manual] — P8/L5 (frase do dia e acervo de citações), L8 (revisão humana). S3 resolvida (D1).
 - [x] **0.4 Inicializar repositório**: git, `.gitignore` (Android, Python, `.env`, keystores,
   `google-services.json`, `build/`), `infra/.env.example`, `.editorconfig`.
   Aceite: `git status` limpo após o primeiro commit; nenhum segredo versionado.
@@ -29,24 +30,27 @@ Premium personalizado: Fase 9. Publicação: Fase 10.
 
 ## Fase 1 — Bíblia BLIVRE (dados compartilhados)
 
-Dep.: 0.1
+Dep.: 0.1 ✅
 
-- [ ] **1.1 Importador** `tools/biblia/importar_blivre.py`: lê o arquivo-fonte da BLIVRE usado no site e gera
+- [x] **1.1 Importador** `tools/biblia/importar_blivre.py`: lê o USFM da BLIVRE (`tools/biblia/fonte/`) e gera
   `build/blivre.sqlite` com `books(id, usfm, name_pt, abbrev_pt, testament, ordinal, chapters)`,
   `verses(id, book_id, chapter, verse, text)` e `verses_fts` (FTS4, `content=verses`).
   Aceite: 66 livros; contagem de versículos igual à da fonte; 10 versículos conhecidos conferidos em teste.
-- [ ] **1.2 Compatibilidade com Room**: o schema do SQLite gerado bate exatamente com as entidades Room
+  Feito (2026-10-31): também `footnotes`, `superscriptions` e `metadata`; FTS sem acento (`remove_diacritics=1`). Ver `tools/biblia/SCHEMA.md`.
+- [x] **1.2 Compatibilidade com Room**: o schema do SQLite gerado bate exatamente com as entidades Room
   da Fase 5 (tipos, nulabilidade, índices, `user_version`). Criar teste que compara com o JSON de schema
   exportado pelo Room (ou documentar o procedimento até o app existir).
-- [ ] **1.3 Parser de referências pt-BR** (Python, reutilizável): aceita "Sl 139.14", "Salmos 139:14",
+  Feito: comparador `blivre/room_schema.py` + entidades e procedimento em `SCHEMA.md`; o teste contra o JSON real
+  é pulado até a 5.5, que precisa fazê-lo passar.
+- [x] **1.3 Parser de referências pt-BR** (Python, reutilizável): aceita "Sl 139.14", "Salmos 139:14",
   "1Co 13.4-7", "1 Coríntios 13", "Jo 3:16,18" → estrutura USFM; e formata de volta ("Salmos 139.14").
-  Aceite: ≥ 40 casos de teste, incluindo livros numerados e abreviações do site.
-- [ ] **1.4 Licença e atribuição**: registrar em `tools/biblia/LICENCA_BLIVRE.md` a licença, a fonte e o texto
+  Aceite: ≥ 40 casos de teste, incluindo livros numerados e as abreviações da BLIVRE (`\\toc3`).
+- [x] **1.4 Licença e atribuição**: registrar em `tools/biblia/LICENCA_BLIVRE.md` a licença, a fonte e o texto
   de atribuição usados na tela "Sobre". Aceite: B5 em `DECISOES.md` vira ✅.
 
 ## Fase 2 — Servidor: base
 
-Dep.: 0.3 (S3), 0.4
+Dep.: 0.4
 
 - [ ] **2.1 Projeto** `server/` com `uv`, FastAPI, Pydantic Settings, ruff, pytest; estrutura de camadas
   conforme `ARQUITETURA.md`. Aceite: `uv run pytest` e `ruff` passam; `GET /v1/health` responde.
@@ -66,13 +70,15 @@ Dep.: 0.3 (S3), 0.4
 
 Dep.: 1.x, 2.x, 0.2
 
-- [ ] **3.1 Calendário** `domain/calendar.py`: computus + datas da tabela de `CONTEUDO_E_LLM.md` (conjunto final do site).
+- [ ] **3.1 Calendário** `domain/calendar.py`: computus + datas da tabela de `CONTEUDO_E_LLM.md` §2.
   Aceite: testes das datas listadas (Páscoa 2025–2027, 2030; Corpus Christi 2026).
-- [ ] **3.2 Plano de versículos**: importar banco do site para `server/data/` + tabela `verse_plan`;
-  regra de não repetição em 365 dias. Aceite: simulação de 2 anos sem repetição indevida; todas as refs existem na BLIVRE.
-- [ ] **3.3 Citações curadas**: importar banco do site; seleção por tags e janela de repetição.
+- [ ] **3.2 Plano de versículos**: montar acervo próprio em `server/data/verse_plan.*` (≥ 366 referências,
+  com tema e datas especiais; o agente propõe só **referências**, o texto vem da BLIVRE) + tabela `verse_plan`;
+  regra de não repetição em 365 dias. Lista revisada pelo Marcos [manual]. Aceite: simulação de 2 anos sem repetição indevida; todas as refs existem na BLIVRE.
+- [ ] **3.3 Citações curadas** (depende de P8/L5): carregar o acervo curado próprio em `server/data/quotes.*`;
+  seleção por tags e janela de repetição.
   Aceite: teste de seleção determinística por data; nenhuma citação sem autor.
-- [ ] **3.4 Candidatos de leitura complementar** (P9): fonte de referências cruzadas (ou regra do site).
+- [ ] **3.4 Candidatos de leitura complementar** (P9): fonte de referências cruzadas (OpenBible.info, conferir licença).
   Aceite: para 50 versículos do plano, ≥ 3 candidatos válidos cada.
 - [ ] **3.5 Adaptador LLM agnóstico**: `LlmClient` + `OpenAICompatibleClient` + `FakeLlmClient`, configurado só por
   `LLM_*` (`LLM_SERVER.md` §3–4): modo JSON configurável, `LLM_EXTRA_BODY`, remoção de raciocínio, extração de JSON,
@@ -81,7 +87,7 @@ Dep.: 1.x, 2.x, 0.2
   Aceite: o mesmo estudo de teste gera com **Gemma 4 (JSON_MODE=none)** e **Qwen3 (json_schema)** trocando só o `.env`;
   testes unitários cobrem resposta com `<think>`, JSON cercado de texto, JSON inválido e timeout;
   nenhum arquivo fora de `app/llm/` cita nome de modelo.
-- [ ] **3.6 Prompts v1** `server/prompts/study_v1.md` a partir dos prompts do site. Aceite: 10 gerações de amostra
+- [ ] **3.6 Prompts v1** `server/prompts/study_v1.md` a partir de `CONTEUDO_E_LLM.md` §6. Aceite: 10 gerações de amostra
   revisadas pelo Marcos [manual] antes de seguir.
 - [ ] **3.7 Pipeline de geração** com validações e tentativas (`CONTEUDO_E_LLM.md` §4).
   Aceite: testes com `FakeLlmClient` cobrindo sucesso, JSON inválido, ref fora dos candidatos,
