@@ -119,7 +119,8 @@ mana-diario-app/
 - Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD`
 - Bíblia: `cd tools/biblia && uv run python importar_blivre.py` (padrão: `fonte/porbr2018_usfm.zip` → `build/blivre.sqlite`);
   testes `uv run pytest`; lint `uv run ruff check . && uv run ruff format --check .`;
-  conferir/atualizar a fonte: `uv run python baixar_fonte.py`. Pacote `blivre` (parser de referências) é reutilizado pelo servidor.
+  conferir/atualizar a fonte: `uv run python baixar_fonte.py`. Pacote `blivre` (parser de referências) é reutilizado pelo servidor
+  como dependência de caminho **não editável**: depois de mudar `tools/biblia/blivre`, rode `cd server && uv sync --reinstall-package blivre`.
 - App: `cd android && ./gradlew assembleDebug testDebugUnitTest lint`
 - llm-server (compartilhado): `/home/marcos/OneDriveLocalSync/LinguagensProgramacao/Android/CacaPalavras2/llm-server`
   — contêiner `llm` (llama.cpp), `curl 127.0.0.1:8081/health`; o compose do Maná entra na rede `llm-net`.

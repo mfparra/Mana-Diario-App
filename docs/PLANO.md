@@ -62,7 +62,7 @@ Dep.: 0.4
   montado somente leitura; `api`/`worker` na rede externa `llm-net` (`LLM_BASE_URL=http://llm:8081/v1`);
   todas as variáveis `LLM_*` de `LLM_SERVER.md` §4 no `.env.example`. Documentar o comando que funciona no distrobox.
   Aceite: stack sobe com um comando; health mostra `db: ok` e `llm: ok`.
-- [ ] **2.4 Módulo Bíblia no servidor**: leitura do `blivre.sqlite`, `get_text(ref)`, `exists(ref)`, parser da 1.3
+- [x] **2.4 Módulo Bíblia no servidor**: leitura do `blivre.sqlite`, `get_text(ref)`, `exists(ref)`, parser da 1.3
   (pacote `blivre` de `tools/biblia` como dependência de caminho no `uv`; não duplicar o parser).
   Aceite: testes de leitura de versículo, intervalo e capítulo inteiro.
 - [ ] **2.5 Erros, logs e middleware**: formato de erro de `API.md`, logs JSON sem PII, request-id, CORS desligado.

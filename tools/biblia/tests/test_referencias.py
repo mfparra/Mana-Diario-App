@@ -1,9 +1,11 @@
 import pytest
 
+from blivre.livros import BOOKS
 from blivre.referencias import (
     InvalidReferenceError,
     Reference,
     VerseRange,
+    format_canonical,
     format_reference,
     parse_reference,
 )
@@ -146,3 +148,26 @@ def test_ida_e_volta(texto):
 def test_invalidas(texto):
     with pytest.raises(InvalidReferenceError):
         parse_reference(texto)
+
+
+@pytest.mark.parametrize(
+    ("texto", "canonico"),
+    [
+        ("Sl 139.14", "PSA 139:14"),
+        ("1 Coríntios 13.4-7", "1CO 13:4-7"),
+        ("Jo 3:16,18", "JHN 3:16,18"),
+        ("Jo 3.16; 14.6", "JHN 3:16; 14:6"),
+        ("Gn 1.1-2.3", "GEN 1:1-2:3"),
+        ("Sl 23", "PSA 23"),
+        ("Jd 3", "JUD 1:3"),
+    ],
+)
+def test_forma_canonica_ida_e_volta(texto, canonico):
+    ref = parse_reference(texto)
+    assert format_canonical(ref) == canonico
+    assert parse_reference(canonico) == ref
+
+
+@pytest.mark.parametrize("usfm", [b.usfm for b in BOOKS])
+def test_todo_codigo_usfm_e_aceito(usfm):
+    assert parse_reference(f"{usfm} 1").book == usfm

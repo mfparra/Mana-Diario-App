@@ -5,6 +5,7 @@ from blivre.referencias import (
     InvalidReferenceError,
     Reference,
     VerseRange,
+    format_canonical,
     format_reference,
     parse_reference,
 )
@@ -16,6 +17,7 @@ __all__ = [
     "Reference",
     "VerseRange",
     "book_by_usfm",
+    "format_canonical",
     "format_reference",
     "parse_reference",
 ]

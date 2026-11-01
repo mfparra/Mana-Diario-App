@@ -56,9 +56,9 @@ def _plain(s: str) -> str:
 
 
 def _base_forms(book: Book) -> list[str]:
-    """Formas do nome sem o número do livro (ex.: 1 Coríntios → Coríntios, Co, Cor)."""
+    """Formas do nome sem o número do livro, incluindo o código USFM (1 Coríntios → Coríntios, Co, CO)."""
     strip_num = (lambda s: re.sub(r"^[123]\s*", "", s)) if book.number else (lambda s: s)
-    return [strip_num(book.name_pt), strip_num(book.abbrev_pt), *book.aliases]
+    return [strip_num(book.name_pt), strip_num(book.abbrev_pt), strip_num(book.usfm), *book.aliases]
 
 
 def _build_index() -> tuple[dict[str, str], dict[str, str]]:
@@ -203,30 +203,39 @@ def _validate(r: VerseRange, book: Book, original: str) -> None:
 # --- formatador -------------------------------------------------------------------------------
 
 
-def _fmt_range(r: VerseRange, with_chapter: bool) -> str:
+def _fmt_range(r: VerseRange, with_chapter: bool, sep: str) -> str:
     if r.whole_chapters:
         return str(r.chapter) if r.chapter == r.chapter_end else f"{r.chapter}-{r.chapter_end}"
-    start = f"{r.chapter}.{r.verse_start}" if with_chapter else str(r.verse_start)
+    start = f"{r.chapter}{sep}{r.verse_start}" if with_chapter else str(r.verse_start)
     if r.chapter_end != r.chapter:
-        return f"{start}-{r.chapter_end}.{r.verse_end}"
+        return f"{start}-{r.chapter_end}{sep}{r.verse_end}"
     if r.verse_end != r.verse_start:
         return f"{start}-{r.verse_end}"
     return start
 
 
-def format_reference(ref: Reference, abbreviated: bool = False) -> str:
-    """Reference → "Salmos 139.14" (ou "Sl 139.14" com `abbreviated=True`)."""
-    book = book_by_usfm(ref.book)
+def _fmt_location(ref: Reference, sep: str) -> str:
     out = ""
     prev: VerseRange | None = None
     for r in ref.ranges:
         if prev is None:
-            out = _fmt_range(r, with_chapter=True)
+            out = _fmt_range(r, True, sep)
         elif not r.whole_chapters and not prev.whole_chapters and r.chapter == prev.chapter_end:
-            out += "," + _fmt_range(r, with_chapter=False)
+            out += "," + _fmt_range(r, False, sep)
         elif r.whole_chapters and prev.whole_chapters:
-            out += "," + _fmt_range(r, with_chapter=True)
+            out += "," + _fmt_range(r, True, sep)
         else:
-            out += "; " + _fmt_range(r, with_chapter=True)
+            out += "; " + _fmt_range(r, True, sep)
         prev = r
-    return f"{book.abbrev_pt if abbreviated else book.name_pt} {out}"
+    return out
+
+
+def format_reference(ref: Reference, abbreviated: bool = False) -> str:
+    """Reference → "Salmos 139.14" (ou "Sl 139.14" com `abbreviated=True`)."""
+    book = book_by_usfm(ref.book)
+    return f"{book.abbrev_pt if abbreviated else book.name_pt} {_fmt_location(ref, '.')}"
+
+
+def format_canonical(ref: Reference) -> str:
+    """Reference → forma canônica para armazenar/trafegar: "PSA 139:14", "1CO 13:4-7", "JHN 3:16; 14:6"."""
+    return f"{ref.book} {_fmt_location(ref, ':')}"

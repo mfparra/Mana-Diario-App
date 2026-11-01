@@ -37,7 +37,9 @@ Um repositório com `android/`, `server/`, `tools/` e `infra/`. Motivos: o contr
 - `app/llm/` — `LlmClient` (interface) + `OpenAICompatibleClient` (padrão; serve o llm-server atual)
   + `FakeLlmClient`. Único lugar com particularidades de provedor/modelo.
 - `app/notes/` — sincronização de anotações (criptografia, versão otimista).
-- `app/bible/` — acesso ao `blivre.sqlite` e parser de referências em português.
+- `app/bible/` — `BibleRepository` (leitura somente leitura do `blivre.sqlite`: `exists`, `get_passage`, `get_text`);
+  o parser de referências vem do pacote `blivre` (`tools/biblia`). Referências guardadas no banco usam a forma
+  canônica USFM (`JHN 3:16`, `1CO 13:4-7`), via `format_canonical`.
 - `worker/` — agendador (APScheduler ou laço simples) que chama `GenerationService`.
 
 ### Tabelas principais (PostgreSQL)

@@ -1,5 +1,5 @@
 # Imagem do servidor do Maná Diário — alvos `api` e `worker`.
-# Contexto de build = raiz do repositório (para incluir tools/biblia na tarefa 2.4):
+# Contexto de build = raiz do repositório (inclui o pacote tools/biblia/blivre):
 #   podman build --format docker -f server/Containerfile --target api    -t mana-api .
 #   podman build --format docker -f server/Containerfile --target worker -t mana-worker .
 # Nenhum segredo entra na imagem: tudo vem do ambiente em tempo de execução (infra/.env).
@@ -13,6 +13,9 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON_DOWNLOADS=never \
     UV_PROJECT_ENVIRONMENT=/opt/venv
+# pacote `blivre` (parser de referências) é dependência de caminho: ../tools/biblia
+COPY tools/biblia/pyproject.toml /src/tools/biblia/
+COPY tools/biblia/blivre /src/tools/biblia/blivre
 WORKDIR /src/server
 COPY server/pyproject.toml server/uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
