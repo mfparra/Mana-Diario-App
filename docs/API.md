@@ -179,3 +179,5 @@ Recebe RTDN via Pub/Sub push; autenticado por token do Pub/Sub.
 ## Rate limits (iniciais)
 - `/auth/*`: 10/min por IP · `/studies/*`: 60/min por usuário · `/studies/{d}/personal`: 20/h por usuário
   · `/notes/*`: 120/min por usuário.
+- Excedeu → 429 `rate_limited`, cabeçalho `Retry-After` (segundos) e `details.retry_after_seconds`.
+  Requisição sem login válido recebe 401 antes e não consome o limite do usuário.

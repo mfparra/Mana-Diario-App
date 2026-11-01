@@ -7,13 +7,13 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
 from app.core.errors import ApiError
+from app.core.ratelimit import STUDIES, limit_by_user
 from app.db.models import Study
 from app.db.session import get_session
 from app.services.studies import MAX_RANGE_DAYS, FutureDate, InvalidRange, StudyService
 
-router = APIRouter(prefix="/studies", tags=["studies"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/studies", tags=["studies"], dependencies=[Depends(limit_by_user(STUDIES))])
 
 CACHE_CONTROL = "private, max-age=300"
 

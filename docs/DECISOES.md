@@ -71,6 +71,7 @@ arquivo ou dado é herdado do site.
 | S5 | HTTPS em produção via Caddy (contêiner `proxy`) | 🟡 | |
 | S6 | "Hoje" definido em `America/Sao_Paulo`; servidor aceita até D+1 para fusos a leste | 🟡 | |
 | S7 | Domínio/URL pública da API | ❓ | Necessário antes do teste fechado na Play Store |
+| S8 | Rate limit em memória (janela fixa, por processo), válido com **1 réplica** da API | 🟡 | 2026-10-31. Com mais réplicas, mover para Postgres/Redis mantendo `RateLimiter` |
 
 ## Autenticação
 

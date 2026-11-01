@@ -8,11 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.core.crypto import FieldCipher, get_cipher
 from app.core.errors import ApiError
+from app.core.ratelimit import NOTES, limit_by_user
 from app.db.models import User
 from app.db.session import get_session
 from app.notes.service import MAX_BODY_CHARS, NoteConflict, NoteFutureDate, NotesService, NoteView
 
-router = APIRouter(prefix="/notes", tags=["notes"])
+router = APIRouter(prefix="/notes", tags=["notes"], dependencies=[Depends(limit_by_user(NOTES))])
 
 
 def get_notes_service(
