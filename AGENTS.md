@@ -104,7 +104,8 @@ mana-diario-app/
 
 - O Claude Code roda **dentro de um distrobox**; lá `podman compose` não tinha provedor.
   Use `distrobox-host-exec podman compose ...` (confirmar na Fase 2).
-- Servidor: `cd server && uv run pytest` / `uv run ruff check . && uv run ruff format --check .`
+- Servidor: `cd server && uv run pytest` / `uv run ruff check . && uv run ruff format --check .`;
+  rodar local sem contêiner: `uv run uvicorn app.main:app --port 8000` → `curl localhost:8000/v1/health`
 - Subir stack local: `distrobox-host-exec podman compose -f infra/compose.yaml up -d`
 - Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD`
 - Bíblia: `cd tools/biblia && uv run python importar_blivre.py` (padrão: `fonte/porbr2018_usfm.zip` → `build/blivre.sqlite`);

@@ -140,7 +140,8 @@ Recebe RTDN via Pub/Sub push; autenticado por token do Pub/Sub.
 
 ## Infra / Admin
 
-- `GET /health` → `{ "status": "ok", "db": "ok", "llm": "ok|degraded", "today_published": true }`
+- `GET /health` → `{ "status": "ok|error", "db": "ok|error|not_configured", "llm": "ok|degraded", "today_published": true }`
+  — `503` se o banco falhar (`status: error`); LLM fora do ar só marca `degraded` (a API continua servindo estudos já gerados).
 - `GET /admin/studies?status=failed` · `POST /admin/studies/{date}/regenerate` ·
   `POST /admin/studies/{date}/publish` — header `X-Admin-Token`.
 

@@ -1,0 +1,1 @@
+"""Acesso ao blivre.sqlite."""
