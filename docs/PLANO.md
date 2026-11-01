@@ -103,7 +103,7 @@ Dep.: 1.x, 2.x, 0.2
 
 Dep.: 2.x (3.x para dados reais)
 
-- [ ] **4.1 `POST /auth/google`**: valida ID token (`google-auth`), cria/atualiza usuário, emite tokens.
+- [x] **4.1 `POST /auth/google`**: valida ID token (`google-auth`), cria/atualiza usuário, emite tokens.
   Aceite: testes com tokens forjados/expirados/`aud` errado rejeitados.
 - [ ] **4.2 Refresh rotativo + logout** com detecção de reuso. Aceite: testes de rotação e reuso.
 - [ ] **4.3 `/me`** (GET, PATCH, DELETE, export). Aceite: exclusão apaga todas as tabelas relacionadas.

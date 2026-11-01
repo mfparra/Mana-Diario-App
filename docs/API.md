@@ -34,7 +34,9 @@ Saída 200:
   "user": { "id": "uuid", "name": "Marcos", "email": "...", "photo_url": "...", "is_premium": false, "created": true }
 }
 ```
-Cria o usuário no primeiro login (`created: true`).
+Cria o usuário no primeiro login (`created: true`); nos seguintes, atualiza e-mail, nome e foto.
+Token inválido, forjado, expirado, com `aud`/`iss` errado ou e-mail não verificado → 401 `unauthorized`.
+`is_premium` só vira `true` com assinatura verificada pelo servidor (Fase 8).
 
 ### `POST /auth/refresh`
 Entrada: `{ "refresh_token": "..." }` → novo par de tokens (o refresh antigo é revogado).

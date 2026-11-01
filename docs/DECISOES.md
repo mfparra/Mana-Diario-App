@@ -79,6 +79,7 @@ arquivo ou dado é herdado do site.
 | A1 | Login obrigatório com conta Google para criar usuário e entrar | ✅ | |
 | A2 | App usa Credential Manager → ID token Google → servidor valida e emite JWT próprio | 🟡 | Alternativa: Supabase Auth, como no BuscaPalavras. Escolhido JWT próprio para manter tudo no mesmo servidor |
 | A3 | Access token 30 min; refresh token 60 dias, rotativo, guardado com hash no banco | 🟡 | |
+| A4 | Validação do ID token do Google e JWT próprio com **PyJWT[crypto]** (JWKS do Google em cache de 1 h), no lugar de `google-auth` | 🟡 | 2026-10-31. Uma dependência leve para as duas pontas; confere assinatura RS256, `aud` = Web client ID, `iss`, `exp` (tolerância 60 s) e `email_verified` |
 
 ## Monetização
 
