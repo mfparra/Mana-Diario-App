@@ -70,6 +70,8 @@ resposta da API seja estática e cacheável (ETag = hash do payload).
 1. Worker (`server/worker/`, tique de 60 s) garante estudos publicados de **hoje até D+7**: na janela
    `WORKER_BATCH_WINDOW` (01:00–05:00) enfileira o horizonte inteiro; fora dela, só hoje e amanhã.
    Jobs em `generation_jobs`, um por vez, por prioridade (admin > urgente > normal > reserva).
+   Há **um único worker**: ao iniciar, ele devolve à fila (`pending`) os jobs `running` deixados por uma
+   execução interrompida — sem isso a data ficaria travada, porque `enqueue` reaproveita jobs abertos.
 2. Para cada data faltante: resolve versículo-base (calendário especial > plano de versículos),
    escolhe citação curada, monta candidatos de leitura complementar, chama a LLM.
 3. Valida JSON (Pydantic), valida referências contra a BLIVRE, aplica regras de conteúdo.

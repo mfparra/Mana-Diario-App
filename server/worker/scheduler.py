@@ -187,6 +187,9 @@ class Worker:
         await self.daily_maintenance()
 
     async def run(self, stop: asyncio.Event, heartbeat: Callable[[], None] = lambda: None) -> None:
+        async with self.maker() as s:
+            if n := await jobs.requeue_orphans(s):
+                log.warning("jobs interrompidos devolvidos à fila", extra={"count": n})
         while not stop.is_set():
             heartbeat()
             try:

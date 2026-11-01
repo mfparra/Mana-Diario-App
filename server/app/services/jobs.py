@@ -54,6 +54,21 @@ async def claim_next(session: AsyncSession, now: dt.datetime | None = None) -> G
     return job
 
 
+async def requeue_orphans(session: AsyncSession) -> int:
+    """Devolve à fila os jobs `running` deixados por um worker interrompido.
+
+    Só é seguro porque há um único worker (1 requisição por vez à LLM): ao iniciar, nada está rodando.
+    Sem isso, `enqueue` acharia o órfão e a data nunca mais seria gerada.
+    """
+    res = await session.execute(
+        update(GenerationJob)
+        .where(GenerationJob.status == "running")
+        .values(status="pending", updated_at=dt.datetime.now(dt.UTC))
+    )
+    await session.commit()
+    return res.rowcount or 0
+
+
 async def finish(session: AsyncSession, job_id: int, ok: bool, error: str | None = None) -> None:
     await session.execute(
         update(GenerationJob)

@@ -126,6 +126,23 @@ async def test_manutencao_uma_vez_por_dia(maker):
     assert len(chamadas) == 2
 
 
+async def test_job_orfao_volta_para_a_fila_ao_iniciar(maker):
+    async with maker() as s:
+        await jobs.enqueue(s, "daily", HOJE)
+        assert (await jobs.claim_next(s)).status == "running"  # worker anterior morreu aqui
+    gen = FakeGen()
+    stop = asyncio.Event()
+    w = Worker(maker, gen, WorkerConfig(horizon_days=0, tick_s=0.01), clock=lambda: TARDE)
+    task = asyncio.create_task(w.run(stop))
+    await asyncio.sleep(0.05)
+    stop.set()
+    await asyncio.wait_for(task, 2)
+    assert HOJE in [d for d, _ in gen.chamadas]
+    async with maker() as s:
+        st = (await s.execute(text("SELECT status FROM generation_jobs"))).scalars().all()
+    assert "running" not in st
+
+
 async def test_run_para_no_sinal(maker):
     stop = asyncio.Event()
     batidas = []
