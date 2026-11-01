@@ -95,13 +95,21 @@ Dep.: 1.x, 2.x, 0.2
   nenhum arquivo fora de `app/llm/` cita nome de modelo.
 - [ ] **3.6 Prompts v1** `server/prompts/study_v1.md` a partir de `CONTEUDO_E_LLM.md` §6. Aceite: 10 gerações de amostra
   revisadas pelo Marcos [manual] antes de seguir.
+  *Pronto para revisão:* 8 amostras reais em `docs/amostras/estudos_study_v1.md` (exportadas por
+  `server/scripts/exportar_amostras.py`); as 2 restantes saem após a 3.8b. Ex. de ajuste já visível: título "PASTORA".
 - [x] **3.7 Pipeline de geração** com validações e tentativas (`CONTEUDO_E_LLM.md` §4).
   Aceite: testes com `FakeLlmClient` cobrindo sucesso, JSON inválido, ref fora dos candidatos,
   citação bíblica entre aspas no corpo, falha após 3 tentativas.
-- [ ] **3.8 Worker**: garante hoje..D+7 publicados; processa jobs; lotes na janela da madrugada e 1 requisição
+- [x] **3.8 Worker**: garante hoje..D+7 publicados; processa jobs; lotes na janela da madrugada e 1 requisição
   por vez (llm-server compartilhado); CLI `gerar --data` e `gerar --de --ate`. Também roda, 1×/dia,
   `NotesService.purge_tombstones()` (tombstones de anotações com mais de 30 dias).
   Aceite: stack local gera 8 dias seguidos sozinha; BuscaPalavras continua respondendo durante o lote.
+  *Teste real (01/11/2026, janela aberta o dia todo):* 8 dias publicados sozinhos em ~45 min (01–03 e 06–10/11),
+  `/health` do llm-server sempre 200 em < 40 ms. 04 e 05/11 falharam: 1× saída inválida após 3 tentativas e
+  depois timeouts (ver 3.8b). O teste revelou e corrigiu jobs `running` órfãos após reinício do worker.
+- [ ] **3.8b llm-server lento sob carga** [manual] — durante o teste o contêiner `llm` ficou em 4,84 GB de
+  5,37 GB de limite e a geração caiu para < 1 token/s (timeouts de 300 s). Marcos avalia o limite de memória
+  do llm-server (afeta o BuscaPalavras, não alterar sem avaliar) e depois regenerar 04–05/11 pelo admin.
 - [x] **3.9 Pool de reserva** (14 estudos) + publicação de fallback à meia-noite. Aceite: teste simulando falha do LLM.
 - [x] **3.10 Endpoints admin** (listar falhas, regenerar, publicar). Aceite: protegidos por `X-Admin-Token`.
 
