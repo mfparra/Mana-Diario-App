@@ -13,8 +13,14 @@ ao mudar código, atualize aqui.
 ```
 
 Códigos comuns: `unauthorized` (401), `forbidden` (403), `premium_required` (403),
-`not_found` (404), `study_not_available` (404), `future_date` (422), `validation_error` (422),
-`rate_limited` (429), `generation_failed` (503).
+`not_found` (404), `method_not_allowed` (405), `study_not_available` (404), `future_date` (422),
+`validation_error` (422), `rate_limited` (429), `internal_error` (500), `generation_failed` (503).
+
+- `validation_error` traz `details.fields = [{ "loc": ["body", "campo"], "type": "int_parsing" }]`,
+  **sem ecoar os valores enviados** (podem conter dados pessoais).
+- Toda resposta tem o cabeçalho `X-Request-ID`. O app pode enviar o próprio (8–64 caracteres `[A-Za-z0-9._-]`);
+  senão o servidor gera um. Use-o ao relatar erros.
+- CORS desligado: nenhuma resposta tem cabeçalhos `Access-Control-*` (o único cliente é o app).
 
 ## Auth
 

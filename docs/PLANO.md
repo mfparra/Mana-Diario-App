@@ -65,7 +65,7 @@ Dep.: 0.4
 - [x] **2.4 Módulo Bíblia no servidor**: leitura do `blivre.sqlite`, `get_text(ref)`, `exists(ref)`, parser da 1.3
   (pacote `blivre` de `tools/biblia` como dependência de caminho no `uv`; não duplicar o parser).
   Aceite: testes de leitura de versículo, intervalo e capítulo inteiro.
-- [ ] **2.5 Erros, logs e middleware**: formato de erro de `API.md`, logs JSON sem PII, request-id, CORS desligado.
+- [x] **2.5 Erros, logs e middleware**: formato de erro de `API.md`, logs JSON sem PII, request-id, CORS desligado.
 
 ## Fase 3 — Conteúdo e geração
 

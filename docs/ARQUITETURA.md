@@ -126,7 +126,9 @@ Deep link externo opcional: `manadiario://study/2026-11-01`.
 - Tokens no app: DataStore cifrado com Tink (chave no Android Keystore).
 - Perfil premium e anotações: criptografia de campo no servidor (chave em variável de ambiente, rotação documentada).
 - Rate limit por usuário nos endpoints de geração; endpoints admin protegidos por token separado.
-- Logs sem PII (sem email, sem texto do perfil, sem prompt personalizado).
+- Logs JSON sem PII (`app/core/logging.py`): sem e-mail, IP, cabeçalhos, corpo, query string, texto do perfil
+  ou da anotação, prompt personalizado nem mensagem de exceção (só tipo + pilha). Campos extras só de uma
+  lista permitida; o access log do uvicorn fica desligado (registra IP) e o middleware loga o **modelo** da rota.
 
 ## 6. Contêineres (Podman)
 
