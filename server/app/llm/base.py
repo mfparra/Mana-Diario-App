@@ -1,5 +1,6 @@
 """Interface do adaptador LLM. O resto do servidor só conhece este módulo (e `get_llm_client`)."""
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Protocol, TypeVar
 
@@ -23,10 +24,11 @@ class LlmContextOverflow(LlmError):
 class LlmInvalidOutput(LlmError):
     """A resposta não virou um JSON válido no schema depois de todas as tentativas."""
 
-    def __init__(self, message: str, last_error: str, raw: str):
+    def __init__(self, message: str, last_error: str, raw: str, attempts: int = 0):
         super().__init__(message)
         self.last_error = last_error
         self.raw = raw
+        self.attempts = attempts
 
 
 @dataclass
@@ -66,6 +68,7 @@ class LlmClient(Protocol):
         schema: type[T],
         temperature: float | None = None,
         max_tokens: int | None = None,
+        validate: Callable[[T], list[str]] | None = None,
     ) -> LlmResult[T]: ...
 
     async def health(self) -> LlmHealth: ...

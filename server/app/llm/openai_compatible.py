@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from app.core.config import Settings
 from app.llm.base import LlmContextOverflow, LlmHealth, LlmResult, LlmUnavailable, LlmUsage
-from app.llm.generation import CompletionOut, generate_with_retries, schema_hint
+from app.llm.generation import CompletionOut, Validator, generate_with_retries, schema_hint
 
 # Um semáforo por processo: o llm-server atende 1 requisição por vez e é compartilhado.
 _semaphores: dict[int, asyncio.Semaphore] = {}
@@ -100,6 +100,7 @@ class OpenAICompatibleClient:
         schema: type[T],
         temperature: float | None = None,
         max_tokens: int | None = None,
+        validate: Validator | None = None,
     ) -> LlmResult[T]:
         temperature = self.s.llm_temperature if temperature is None else temperature
         max_tokens = max_tokens or self.s.llm_max_tokens
@@ -138,6 +139,7 @@ class OpenAICompatibleClient:
             strip_thinking=self.s.llm_strip_thinking,
             provider=self.provider,
             model=self.model,
+            validate=validate,
         )
 
     async def health(self) -> LlmHealth:

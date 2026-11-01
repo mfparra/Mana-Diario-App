@@ -308,3 +308,14 @@ def test_dica_de_schema_sem_defs():
     assert "$defs" not in hint and "$ref" not in hint
     assert "candidate_index" in hint  # o submodelo foi expandido no lugar
     assert "VALORES" in hint
+
+
+async def test_regras_de_conteudo_entram_no_laco_de_tentativas():
+    fake = FakeLlmClient(['{"title": "Paz", "n": 99}', '{"title": "Paz", "n": 2}'])
+
+    def regras(s: Saida) -> list[str]:
+        return ["n deve ser menor que 10"] if s.n >= 10 else []
+
+    r = await fake.generate_json(system="s", user="u", schema=Saida, validate=regras)
+    assert (r.data.n, r.attempts) == (2, 2)
+    assert "n deve ser menor que 10" in fake.calls[1][1]["content"]

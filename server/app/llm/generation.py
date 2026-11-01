@@ -20,6 +20,8 @@ class CompletionOut:
 
 
 Completion = Callable[[list[dict[str, str]]], Awaitable[CompletionOut]]
+# Regras de conteúdo além do schema: devolve a lista de problemas (vazia = aceito).
+Validator = Callable[[Any], list[str]]
 
 
 def _inline_refs(node: Any, defs: dict[str, Any]) -> Any:
@@ -62,6 +64,7 @@ async def generate_with_retries[T: BaseModel](
     strip_thinking: bool,
     provider: str,
     model: str,
+    validate: Validator | None = None,
 ) -> LlmResult[T]:
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     errors: list[str] = []
@@ -80,12 +83,18 @@ async def generate_with_retries[T: BaseModel](
         except JsonExtractionError as exc:
             err = f"- {exc}"
         else:
-            return LlmResult(data, provider, model, attempt, time.monotonic() - start, usage, errors)
+            problems = validate(data) if validate else []
+            if not problems:
+                return LlmResult(data, provider, model, attempt, time.monotonic() - start, usage, errors)
+            err = "\n".join(f"- {p}" for p in problems)
         if out.truncated:
             err += "\n- a resposta foi cortada pelo limite de tokens: seja mais conciso e feche o JSON"
         errors.append(err)
         # Não reenvia a resposta inválida (estouraria contextos pequenos): só o pedido + o erro.
         messages = [messages[0], {"role": "user", "content": f"{user}\n\n{retry_message(err)}"}]
     raise LlmInvalidOutput(
-        f"resposta inválida após {max_attempts} tentativa(s)", last_error=errors[-1], raw=raw
+        f"resposta inválida após {max_attempts} tentativa(s)",
+        last_error=errors[-1],
+        raw=raw,
+        attempts=max_attempts,
     )

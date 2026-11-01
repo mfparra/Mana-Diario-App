@@ -1,0 +1,19 @@
+# Termos que não podem aparecer no estudo gerado (comparação em minúsculas, por trecho).
+# Objetivo: evitar promessas de prosperidade/cura, política partidária e ataques a tradições (CONTEUDO_E_LLM §6).
+# Revisão do Marcos junto com o prompt (PLANO 3.6).
+cura garantida
+cura certa
+prosperidade financeira
+teologia da prosperidade
+determine a sua vitória
+determino a minha vitória
+semente financeira
+dízimo da vitória
+bolsonaro
+lula
+partido dos trabalhadores
+esquerdista
+direitista
+seita
+herege
+herética

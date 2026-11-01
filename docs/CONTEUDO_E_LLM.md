@@ -73,14 +73,16 @@ resolve_verse(D) → load_blivre_text(ref) → pick_quote(D, tema)
   → validate_schema → validate_refs → content_rules → resolve texts → save(status=published)
 ```
 
-### Regras de validação automáticas
+### Regras de validação automáticas (`server/app/domain/content_rules.py`)
 - JSON válido no schema `StudyLlmOutput` (Pydantic) — sem campos extras.
-- `complementary_reading` deve estar **entre os candidatos** enviados e existir na BLIVRE.
-- O corpo **não pode conter citação bíblica entre aspas** com texto (evita versículo "inventado");
-  referências soltas são permitidas e viram links no app.
-- Tamanhos dentro dos limites; palavras-chave normalizadas (minúsculas, sem acento duplicado, sem `#`).
-- Lista própria de termos proibidos/sensíveis (`server/data/`) e checagem de idioma pt-BR.
-- Falhou → nova tentativa com a mensagem de erro anexada ao prompt (máx. 3) → `failed`.
+- `complementary_reading.candidate_index` deve ser um dos candidatos enviados (o servidor resolve a referência).
+- Nada entre aspas com 5+ palavras (corpo, aplicação, oração) — evita versículo "inventado" ou citação de autor;
+  nenhuma sequência de 8+ palavras copiada do versículo-base.
+- Toda referência solta no texto (ex.: "Jo 10.11") precisa existir na BLIVRE; viram links no app.
+- Corpo com 200–520 palavras (o prompt pede 250–450); título 1–3 palavras; palavras-chave normalizadas.
+- Termos proibidos em `server/data/termos_proibidos.txt` (palavra inteira) e checagem simples de pt-BR.
+- Falhou → nova tentativa com o pedido original + a lista de problemas (máx. `LLM_MAX_RETRIES`) → `failed`.
+- Payload final: versículo, leitura complementar e citação resolvidos pelo servidor (`StudyPayload`).
 
 ### Fallback de disponibilidade
 Manter um **pool de reserva** de ~14 estudos genéricos já validados (sem data especial).

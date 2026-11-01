@@ -62,7 +62,12 @@ class CrossReferenceRepository:
             ).fetchall()
 
         ranked = sorted(
-            ((s, e, v) for s, e, v in rows if v >= min_votes and (e < lo or s > hi)),
+            # só trechos de um capítulo (o payload da API não representa intervalos entre capítulos)
+            (
+                (s, e, v)
+                for s, e, v in rows
+                if v >= min_votes and (e < lo or s > hi) and s // 1000 == e // 1000
+            ),
             key=lambda r: (-r[2], r[0], r[1]),
         )
         out: list[Reference] = []

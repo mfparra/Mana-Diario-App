@@ -17,7 +17,9 @@ ESTUDO = {
 
 
 def test_prompt_de_verificacao_tem_secoes():
-    system, user = cli.load_prompt("llm_check")
+    from app.services.generation import load_prompt
+
+    system, user = load_prompt("llm_check")
     assert "português do Brasil" in system
     assert "{referencia}" in user and "{candidatos}" in user
 
@@ -44,3 +46,12 @@ async def test_llm_check_falha_com_codigo(monkeypatch):
     assert await cli.llm_check(Settings(llm_provider="fake")) == 1
     monkeypatch.setattr("app.llm.get_llm_client", lambda s: FakeLlmClient(healthy=False))
     assert await cli.llm_check(Settings(llm_provider="fake")) == 2
+
+
+def test_prompt_do_estudo_tem_todos_os_campos():
+    from app.services.generation import PROMPT_VERSION, load_prompt
+
+    system, user = load_prompt(PROMPT_VERSION)
+    assert "NUNCA escreva entre aspas" in system
+    for campo in ("{data}", "{dia_especial}", "{tema}", "{referencia}", "{texto}", "{candidatos}"):
+        assert campo in user

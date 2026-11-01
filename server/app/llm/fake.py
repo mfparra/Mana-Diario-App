@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from pydantic import BaseModel
 
 from app.llm.base import LlmHealth, LlmResult, LlmUsage
-from app.llm.generation import CompletionOut, generate_with_retries
+from app.llm.generation import CompletionOut, Validator, generate_with_retries
 
 
 class FakeLlmClient:
@@ -32,6 +32,7 @@ class FakeLlmClient:
         schema: type[T],
         temperature: float | None = None,
         max_tokens: int | None = None,
+        validate: Validator | None = None,
     ) -> LlmResult[T]:
         async def complete(messages: list[dict[str, str]]) -> CompletionOut:
             self.calls.append(messages)
@@ -51,6 +52,7 @@ class FakeLlmClient:
             strip_thinking=True,
             provider=self.provider,
             model=self.model,
+            validate=validate,
         )
 
     async def health(self) -> LlmHealth:

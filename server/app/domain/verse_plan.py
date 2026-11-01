@@ -87,6 +87,10 @@ def plan_issues(entries: Sequence[PlanEntry]) -> list[str]:
     for a, b in itertools.pairwise(spans):
         if a[0] == b[0] and (b[1], b[2]) <= (a[3], a[4]) and a[5] != b[5]:
             issues.append(f"sobreposição nos dias comuns: {a[5]} e {b[5]}")
+    for e in entries:  # o payload da API representa um trecho de um só capítulo
+        r = parse_reference(e.ref)
+        if len(r.ranges) != 1 or r.ranges[0].chapter != r.ranges[0].chapter_end:
+            issues.append(f"use um único trecho dentro de um capítulo: {e.ref}")
     for key in sorted(_SPECIAL_KEYS):
         if not any(e.special_day == key for e in entries):
             issues.append(f"sem versículo para a data especial {key}")

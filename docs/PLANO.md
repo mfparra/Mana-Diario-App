@@ -95,7 +95,7 @@ Dep.: 1.x, 2.x, 0.2
   nenhum arquivo fora de `app/llm/` cita nome de modelo.
 - [ ] **3.6 Prompts v1** `server/prompts/study_v1.md` a partir de `CONTEUDO_E_LLM.md` §6. Aceite: 10 gerações de amostra
   revisadas pelo Marcos [manual] antes de seguir.
-- [ ] **3.7 Pipeline de geração** com validações e tentativas (`CONTEUDO_E_LLM.md` §4).
+- [x] **3.7 Pipeline de geração** com validações e tentativas (`CONTEUDO_E_LLM.md` §4).
   Aceite: testes com `FakeLlmClient` cobrindo sucesso, JSON inválido, ref fora dos candidatos,
   citação bíblica entre aspas no corpo, falha após 3 tentativas.
 - [ ] **3.8 Worker**: garante hoje..D+7 publicados; processa jobs; lotes na janela da madrugada e 1 requisição

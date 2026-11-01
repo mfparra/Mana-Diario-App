@@ -116,7 +116,9 @@ mana-diario-app/
   `distrobox-host-exec podman compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build`
   → `curl 127.0.0.1:8000/v1/health` deve mostrar `db: ok` e `llm: ok`. Parar: `... compose -f infra/compose.yaml down`.
   Produção: sem o `compose.dev.yaml` e com `--profile prod` (Caddy/HTTPS).
-- Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD`
+- Gerar estudo manualmente: `uv run python -m app.cli gerar --data AAAA-MM-DD [--force]` (ou `--de/--ate`);
+  no contêiner: `distrobox-host-exec podman compose -f infra/compose.yaml run --rm --no-deps api python -m app.cli gerar --data ...`
+- Recarregar plano de versículos e citações: `python -m app.cli carregar-dados` (o passo `migrate` do compose já roda)
 - Bíblia: `cd tools/biblia && uv run python importar_blivre.py` (padrão: `fonte/porbr2018_usfm.zip` → `build/blivre.sqlite`);
   testes `uv run pytest`; lint `uv run ruff check . && uv run ruff format --check .`;
   conferir/atualizar a fonte: `uv run python baixar_fonte.py`. Referências cruzadas (só servidor):
