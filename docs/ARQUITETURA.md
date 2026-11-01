@@ -53,7 +53,8 @@ Um repositório com `android/`, `server/`, `tools/` e `infra/`. Motivos: o contr
 | `studies` | date (PK), status (`draft`/`published`/`failed`), payload (jsonb), etag, schema_version, verse_ref, special_day, quote_id, provider, model, prompt_version, is_fallback, generated_at, published_at |
 | `generation_jobs` | id, kind (`daily`/`personal`), date, user_id?, status (`pending`/`running`/`done`/`failed`), priority, attempts, last_error, created_at, updated_at |
 | `verse_plan` | id, verse_ref (USFM canônico, ex.: `JHN 3:16`), theme?, special_day? (chave do calendário), active — origem: acervo próprio em `server/data/` |
-| `curated_quotes` | id, text, author (não vazio), source, tags (text[]), active, last_used_at |
+| `curated_quotes` | id, code (id estável do `quotes.csv`), text, author (não vazio), source (obra), tags (text[]), active, last_used_at |
+| `reserve_studies` | id, verse_ref, quote_id, payload (sem campos de data), provider, model, prompt_version, created_at, used_on (único) |
 | `user_profiles` | user_id, encrypted_payload (bytea), consent_at, consent_version, updated_at |
 | `personal_studies` | user_id, date, payload (jsonb), provider, model, prompt_version, generated_at — PK (user_id, date) |
 | `subscriptions` | id, user_id, product_id, purchase_token_hash, status, expires_at, auto_renewing, acknowledged, created_at, last_verified_at |
@@ -66,7 +67,9 @@ migrações em `server/migrations/` (testadas em Postgres real: ida e volta + si
 resposta da API seja estática e cacheável (ETag = hash do payload).
 
 ### Geração do estudo diário
-1. Worker roda a cada hora e garante estudos publicados de **hoje até D+7**.
+1. Worker (`server/worker/`, tique de 60 s) garante estudos publicados de **hoje até D+7**: na janela
+   `WORKER_BATCH_WINDOW` (01:00–05:00) enfileira o horizonte inteiro; fora dela, só hoje e amanhã.
+   Jobs em `generation_jobs`, um por vez, por prioridade (admin > urgente > normal > reserva).
 2. Para cada data faltante: resolve versículo-base (calendário especial > plano de versículos),
    escolhe citação curada, monta candidatos de leitura complementar, chama a LLM.
 3. Valida JSON (Pydantic), valida referências contra a BLIVRE, aplica regras de conteúdo.

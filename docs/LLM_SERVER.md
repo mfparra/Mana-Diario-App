@@ -116,6 +116,13 @@ tempo, tentativas, tokens, erros das tentativas e o estudo. Usar sempre que troc
 Orçamento: com o Gemma, raciocínio + resposta usaram ~1.500 dos 2.000 `max_tokens`. Prompts maiores
 (estudo real com citação e datas especiais) devem ficar ≤ 1.800 tokens de entrada, como previsto.
 
+### Erros reais do Gemma tratados pelo reparo de JSON (2026-11-01, `app/llm/parsing.py`)
+- lista fechada com `}` em vez de `]`; objeto principal fechado cedo (`...]}, "application": ...`);
+- aspas sem escape dentro de texto (`a ideia de que "nada nos faltará" pode...`);
+- `application`/`prayer` como lista de uma frase (o schema junta);
+- cópia do `$defs` do schema (a dica agora expande as definições).
+Todos têm teste com o trecho real. Reparos só sintáticos: nunca mudam o conteúdo gerado.
+
 ### LLM de teste separada
 `infra/llm-teste/compose.yaml` sobe um llama.cpp **independente** (Qwen3 4B, `mana-llm-teste`, porta 127.0.0.1:8082,
 na `llm-net`) para validar a troca de provedor sem mexer no llm-server compartilhado. Desligar depois do teste.

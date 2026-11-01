@@ -28,6 +28,14 @@ class StudyLlmOutput(BaseModel):
     complementary_reading: ComplementaryReadingChoice
     keywords: list[Annotated[str, Field(min_length=2, max_length=30)]] = Field(min_length=2, max_length=4)
 
+    @field_validator("title", "application", "prayer", mode="before")
+    @classmethod
+    def _join_list(cls, v: object) -> object:
+        # modelos pequenos às vezes mandam ["frase"] em vez de "frase"
+        if isinstance(v, list) and all(isinstance(x, str) for x in v):
+            return " ".join(x.strip() for x in v)
+        return v
+
     @field_validator("title")
     @classmethod
     def _title_words(cls, v: str) -> str:

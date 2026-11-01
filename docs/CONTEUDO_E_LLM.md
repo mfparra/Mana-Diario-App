@@ -85,8 +85,11 @@ resolve_verse(D) → load_blivre_text(ref) → pick_quote(D, tema)
 - Payload final: versículo, leitura complementar e citação resolvidos pelo servidor (`StudyPayload`).
 
 ### Fallback de disponibilidade
-Manter um **pool de reserva** de ~14 estudos genéricos já validados (sem data especial).
-Se o dia D não tiver estudo publicado até 00:00, o servidor publica um do pool (registrando a troca).
+Pool de reserva (`reserve_studies`) de 14 estudos genéricos já validados (sem data e sem data especial),
+gerados pelo worker na janela da madrugada depois que o horizonte D+7 está completo, com versículos comuns
+fora dos últimos 365 dias e longe no rodízio. A cada tique, se hoje (São Paulo) não tem estudo publicado,
+o worker publica a reserva mais antiga com a data de hoje (`studies.is_fallback = true`, `reserve_studies.used_on`).
+Uma data com 3 falhas de geração em 24 h não é tentada de novo no mesmo dia.
 
 ## 5. Schema de saída da LLM (estudo geral)
 

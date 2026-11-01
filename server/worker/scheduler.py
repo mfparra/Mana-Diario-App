@@ -7,7 +7,9 @@ A cada tique:
    - Uma data que já falhou `max_failures_per_day` vezes nas últimas 24 h não é tentada de novo
      (o pool de reserva, tarefa 3.9, cobre o dia).
 2. Processa os jobs pendentes, por prioridade, um de cada vez.
-3. Uma vez por dia: limpeza de tombstones de anotações.
+3. Pool de reserva (3.9): se hoje não tem estudo publicado, publica um da reserva; na janela de lote,
+   com o horizonte completo, repõe a reserva até `pool_size`, um estudo por tique.
+4. Uma vez por dia: limpeza de tombstones de anotações.
 """
 
 import asyncio
@@ -36,11 +38,14 @@ class WorkerConfig:
     batch_end: dt.time = dt.time(5, 0)
     max_failures_per_day: int = 3
     tick_s: float = 60.0
+    pool_size: int = 14
 
 
 # (sessão, data, force) → status ("published" | "failed" | "skipped")
 GenerateFn = Callable[[AsyncSession, dt.date, bool], Awaitable[str]]
 MaintenanceFn = Callable[[AsyncSession], Awaitable[None]]
+ReserveFn = Callable[[AsyncSession], Awaitable[str]]  # gera um estudo de reserva → status
+FallbackFn = Callable[[AsyncSession, dt.date], Awaitable[bool]]  # publica reserva na data → publicou?
 
 
 def parse_window(spec: str) -> tuple[dt.time, dt.time]:
@@ -57,12 +62,18 @@ class Worker:
         config: WorkerConfig | None = None,
         maintenance: MaintenanceFn | None = None,
         clock: Callable[[], dt.datetime] = lambda: dt.datetime.now(dt.UTC),
+        reserve: ReserveFn | None = None,
+        fallback: FallbackFn | None = None,
+        pool_available: Callable[[AsyncSession], Awaitable[int]] | None = None,
     ):
         self.maker = maker
         self.generate = generate
         self.config = config or WorkerConfig()
         self.maintenance = maintenance
         self.clock = clock
+        self.reserve = reserve
+        self.fallback = fallback
+        self.pool_available = pool_available
         self._last_maintenance: dt.date | None = None
 
     def _local_now(self) -> dt.datetime:
@@ -109,14 +120,18 @@ class Worker:
             if job is None:
                 return False
             job_id, kind, date, prio = job.id, job.kind, job.date, job.priority
-        if kind != "daily":  # "personal" entra na Fase 9
-            async with self.maker() as s:
+        if kind not in ("daily", "reserve") or (kind == "reserve" and self.reserve is None):
+            async with self.maker() as s:  # "personal" entra na Fase 9
                 await jobs.finish(s, job_id, False, f"tipo de job ainda não suportado: {kind}")
             return True
         force = prio >= jobs.PRIORITY_ADMIN  # regenerate pelo admin refaz mesmo se publicado
         try:
             async with self.maker() as s:
-                status = await self.generate(s, date, force)
+                if kind == "reserve":
+                    assert self.reserve is not None
+                    status = await self.reserve(s)
+                else:
+                    status = await self.generate(s, date, force)
             ok, error = status in ("published", "skipped"), None if status != "failed" else "geração falhou"
         except Exception as exc:  # o worker nunca morre por causa de um job
             log.exception("job falhou com exceção", extra={"job_id": job_id, "date": date.isoformat()})
@@ -137,10 +152,38 @@ class Worker:
             await self.maintenance(s)
         self._last_maintenance = today
 
+    async def ensure_today(self) -> bool:
+        """Hoje sem estudo publicado → publica um da reserva (PLANO 3.9). Devolve se publicou."""
+        if self.fallback is None:
+            return False
+        today = self._local_now().date()
+        async with self.maker() as s:
+            if await s.scalar(select(Study.date).where(Study.date == today, Study.status == "published")):
+                return False
+            return await self.fallback(s, today)
+
+    async def ensure_pool(self) -> bool:
+        """Na janela de lote, com o horizonte completo, repõe a reserva (um estudo por vez)."""
+        if self.reserve is None or self.pool_available is None or not self.in_batch_window():
+            return False
+        async with self.maker() as s:
+            pending_daily = await s.scalar(
+                select(func.count())
+                .select_from(GenerationJob)
+                .where(GenerationJob.kind == "daily", GenerationJob.status.in_(("pending", "running")))
+            )
+            if pending_daily or await self.pool_available(s) >= self.config.pool_size:
+                return False
+            await jobs.enqueue(s, "reserve", self._local_now().date(), priority=jobs.PRIORITY_NORMAL - 1)
+        return True
+
     async def tick(self) -> None:
+        await self.ensure_today()  # disponibilidade primeiro: hoje não fica sem estudo se houver reserva
         await self.ensure_horizon()
         while await self.process_one():
             pass
+        if await self.ensure_pool():
+            await self.process_one()
         await self.daily_maintenance()
 
     async def run(self, stop: asyncio.Event, heartbeat: Callable[[], None] = lambda: None) -> None:

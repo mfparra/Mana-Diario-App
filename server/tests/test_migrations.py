@@ -30,6 +30,7 @@ TABELAS = {
     "personal_studies",
     "subscriptions",
     "notes",
+    "reserve_studies",
 }
 
 

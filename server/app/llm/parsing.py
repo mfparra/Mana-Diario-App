@@ -52,14 +52,44 @@ def _matching_brace(text: str, start: int) -> int | None:
     return None
 
 
-def _balance_closers(text: str) -> str:
+def _escape_inner_quotes(text: str) -> str:
+    """Escapa aspas soltas dentro de strings: `"a ideia de que "nada nos faltará" pode"` (erro comum de
+    LLMs pequenas). Uma aspa só fecha a string se o próximo caractere útil for , : } ] ou o fim."""
+    out: list[str] = []
+    in_str = esc = False
+    n = len(text)
+    for i, ch in enumerate(text):
+        if not in_str:
+            in_str = ch == '"'
+            out.append(ch)
+            continue
+        if esc:
+            esc = False
+        elif ch == "\\":
+            esc = True
+        elif ch == '"':
+            j = i + 1
+            while j < n and text[j] in " \t\r\n":
+                j += 1
+            if j >= n or text[j] in ",:}]":
+                in_str = False
+            else:
+                out.append("\\")
+        out.append(ch)
+    return "".join(out)
+
+
+_MORE_KEYS = re.compile(r'\s*,\s*"[^"]{1,40}"\s*:')
+
+
+def _balance_closers(text: str, autoclose: bool = True) -> str | None:
     """Corrige fechamentos trocados fora de strings: `["a", "b" }` → `["a", "b" ]}` (erro comum de LLMs
     pequenas), fecha o que ficou aberto no fim e descarta fechamentos sem abertura."""
     pairs = {"{": "}", "[": "]"}
     out: list[str] = []
     stack: list[str] = []
     in_str = esc = False
-    for ch in text:
+    for i, ch in enumerate(text):
         if in_str:
             out.append(ch)
             if esc:
@@ -76,17 +106,22 @@ def _balance_closers(text: str) -> str:
         elif ch in "}]":
             if ch not in stack:
                 continue  # fechamento sem abertura: descarta
+            if len(stack) == 1 and _MORE_KEYS.match(text, i + 1):
+                continue  # fechou o objeto principal cedo demais: `...]}, "application": ...`
             while stack and stack[-1] != ch:
                 out.append(stack.pop())  # fecha o que faltou antes
             stack.pop()
         out.append(ch)
+    if stack and not autoclose:
+        return None  # ficou algo aberto (resposta truncada)
     out.extend(reversed(stack))
     return "".join(out)
 
 
 def _repair(candidate: str) -> str:
     """Reparos sintáticos que não mudam conteúdo: delimitadores trocados e vírgula sobrando."""
-    return re.sub(r",\s*([}\]])", r"\1", _balance_closers(candidate))
+    escaped = _escape_inner_quotes(candidate)
+    return re.sub(r",\s*([}\]])", r"\1", _balance_closers(escaped) or escaped)
 
 
 def extract_json_object(text: str) -> dict:
@@ -95,6 +130,17 @@ def extract_json_object(text: str) -> dict:
     Nunca desce para um objeto aninhado: se o objeto externo estiver truncado ou inválido, falha
     com uma mensagem útil para a próxima tentativa, em vez de aceitar um pedaço interno.
     """
+    first, last = text.find("{"), text.rfind("}")
+    if first != -1 and last > first:
+        # 1º: o trecho mais longo, reparado (pega objeto fechado cedo demais pela LLM)
+        balanced = _balance_closers(_escape_inner_quotes(text[first : last + 1]), autoclose=False)
+        if balanced is not None:
+            try:
+                value = json.loads(re.sub(r",\s*([}\]])", r"\1", balanced))
+                if isinstance(value, dict):
+                    return value
+            except json.JSONDecodeError:
+                pass
     pos = 0
     last_error: str | None = None
     while (start := text.find("{", pos)) != -1:

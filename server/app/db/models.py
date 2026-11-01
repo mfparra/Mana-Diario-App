@@ -159,11 +159,27 @@ class GenerationJob(Base):
     updated_at: Mapped[dt.datetime] = _now()
 
     __table_args__ = (
-        CheckConstraint("kind IN ('daily', 'personal')", name="kind_valid"),
+        CheckConstraint("kind IN ('daily', 'personal', 'reserve')", name="kind_valid"),
         CheckConstraint("status IN ('pending', 'running', 'done', 'failed')", name="status_valid"),
         CheckConstraint("(kind = 'personal') = (user_id IS NOT NULL)", name="personal_has_user"),
         Index("ix_generation_jobs_pending", "status", "priority", "created_at"),
     )
+
+
+class ReserveStudy(Base):
+    """Estudo genérico já validado, guardado para cobrir um dia em que a geração falhou (PLANO 3.9)."""
+
+    __tablename__ = "reserve_studies"
+
+    id: Mapped[int] = mapped_column(Integer, Identity(), primary_key=True)
+    verse_ref: Mapped[str] = mapped_column(String(50), nullable=False)
+    quote_id: Mapped[int | None] = mapped_column(ForeignKey("curated_quotes.id", ondelete="SET NULL"))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)  # sem os campos de data
+    provider: Mapped[str | None] = mapped_column(String(50))
+    model: Mapped[str | None] = mapped_column(String(100))
+    prompt_version: Mapped[str | None] = mapped_column(String(50))
+    created_at: Mapped[dt.datetime] = _now()
+    used_on: Mapped[dt.date | None] = mapped_column(Date, unique=True)
 
 
 class UserProfile(Base):

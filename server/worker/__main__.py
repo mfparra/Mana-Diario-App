@@ -18,6 +18,7 @@ from app.core.logging import setup_logging
 from app.llm import get_llm_client
 from app.notes.service import purge_tombstones
 from app.services.generation import GenerationService
+from app.services.reserve import available, publish_fallback
 from worker.healthcheck import HEARTBEAT, INTERVAL_S
 from worker.scheduler import Worker, WorkerConfig, parse_window
 
@@ -50,6 +51,12 @@ async def main() -> None:
     async def generate(session, date, force):
         return (await GenerationService(session, bible, xr, llm).generate(date, force=force)).status
 
+    async def reserve(session):
+        return (await GenerationService(session, bible, xr, llm).generate_reserve()).status
+
+    async def fallback(session, date):
+        return (await publish_fallback(session, date)) is not None
+
     async def maintenance(session):
         n = await purge_tombstones(session)
         log.info("manutenção diária", extra={"event": "purge_tombstones", "count": n})
@@ -64,7 +71,10 @@ async def main() -> None:
     log.info("worker iniciado", extra={"provider": llm.provider, "model": llm.model})
     beat()
     try:
-        await asyncio.gather(heartbeat_loop(stop), Worker(maker, generate, cfg, maintenance).run(stop))
+        worker = Worker(
+            maker, generate, cfg, maintenance, reserve=reserve, fallback=fallback, pool_available=available
+        )
+        await asyncio.gather(heartbeat_loop(stop), worker.run(stop))
     finally:
         await engine.dispose()
         log.info("worker encerrado")

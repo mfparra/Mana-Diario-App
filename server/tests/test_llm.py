@@ -319,3 +319,29 @@ async def test_regras_de_conteudo_entram_no_laco_de_tentativas():
     r = await fake.generate_json(system="s", user="u", schema=Saida, validate=regras)
     assert (r.data.n, r.attempts) == (2, 2)
     assert "n deve ser menor que 10" in fake.calls[1][1]["content"]
+
+
+def test_repara_objeto_principal_fechado_cedo_caso_real_gemma():
+    """Saída real do Gemma 4 (2026-11-01): fechou o objeto depois do body: `...]}, "application": [...]`."""
+    from app.domain.study import StudyLlmOutput
+
+    corpo = "Parágrafo com conteúdo suficiente para passar no limite mínimo de tamanho do schema."
+    texto = (
+        '{"title": "CONFIE NELE", "body": ["' + corpo + '", "' + corpo + '", "' + corpo + '"]}, '
+        '"application": ["Permita-se um momento de pausa hoje."], '
+        '"prayer": ["Senhor, eu entrego a Ti. Amém."], '
+        '"complementary_reading": {"candidate_index": 2, "reason": "Mostra o cuidado do pastor."}}, '
+        '"keywords": ["confiança", "paz"]}'
+    )
+    obj = extract_json_object(texto)
+    assert set(obj) == {"title", "body", "application", "prayer", "complementary_reading", "keywords"}
+    out = StudyLlmOutput.model_validate(obj)
+    assert out.application == "Permita-se um momento de pausa hoje."
+    assert out.complementary_reading.candidate_index == 2
+
+
+def test_repara_aspas_internas_sem_escape_caso_real_gemma():
+    texto = '{"title": "PAZ", "n": 1, "nota": "a ideia de que "nada nos faltará" pode soar distante"}'
+    obj = extract_json_object(texto)
+    assert obj["nota"] == 'a ideia de que "nada nos faltará" pode soar distante'
+    assert extract_json_object('{"title": "fim com aspas \\"ok\\"", "n": 2}')["n"] == 2

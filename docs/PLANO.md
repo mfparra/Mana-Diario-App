@@ -102,7 +102,7 @@ Dep.: 1.x, 2.x, 0.2
   por vez (llm-server compartilhado); CLI `gerar --data` e `gerar --de --ate`. Também roda, 1×/dia,
   `NotesService.purge_tombstones()` (tombstones de anotações com mais de 30 dias).
   Aceite: stack local gera 8 dias seguidos sozinha; BuscaPalavras continua respondendo durante o lote.
-- [ ] **3.9 Pool de reserva** (14 estudos) + publicação de fallback à meia-noite. Aceite: teste simulando falha do LLM.
+- [x] **3.9 Pool de reserva** (14 estudos) + publicação de fallback à meia-noite. Aceite: teste simulando falha do LLM.
 - [x] **3.10 Endpoints admin** (listar falhas, regenerar, publicar). Aceite: protegidos por `X-Admin-Token`.
 
 ## Fase 4 — Servidor: autenticação e API de estudos
