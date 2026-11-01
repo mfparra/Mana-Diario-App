@@ -21,16 +21,33 @@ DESTINO = AQUI.parents[1] / "server" / "data" / "citacoes_fontes"
 UA = "mana-diario-curadoria/0.1"
 
 # id → (autor, obra, wiki, título da página)
+WS = "pt.wikisource.org"
 FONTES: dict[str, tuple[str, str, str, str]] = {
-    "vieira-sexagesima": ("Padre Antônio Vieira", "Sermão da Sexagésima (1655)", "pt.wikisource.org",
-                          "Sermões do padre Antonio Vieira/Sermão da Sexagesima"),
-    "vieira-santo-antonio": ("Padre Antônio Vieira", "Sermão de Santo Antônio aos Peixes (1654)", "pt.wikisource.org",
-                             "Sermão de Santo António (1654)"),
-    "vieira-mandato-1655": ("Padre Antônio Vieira", "Sermão do Mandato (1655)", "pt.wikisource.org",
-                            "Sermão do Mandato (1655)"),
-    "vieira-dominga-xix": ("Padre Antônio Vieira", "Sermão da Dominga XIX depois do Pentecoste", "pt.wikisource.org",
-                           "Sermão da Dominga XIX depois do Pentecoste"),
-}  # fmt: skip
+    "vieira-sexagesima": (
+        "Padre Antônio Vieira",
+        "Sermão da Sexagésima (1655)",
+        WS,
+        "Sermões do padre Antonio Vieira/Sermão da Sexagesima",
+    ),
+    "vieira-santo-antonio": (
+        "Padre Antônio Vieira",
+        "Sermão de Santo Antônio aos Peixes (1654)",
+        WS,
+        "Sermão de Santo António (1654)",
+    ),
+    "vieira-mandato-1655": (
+        "Padre Antônio Vieira",
+        "Sermão do Mandato (1655)",
+        WS,
+        "Sermão do Mandato (1655)",
+    ),
+    "vieira-dominga-xix": (
+        "Padre Antônio Vieira",
+        "Sermão da Dominga XIX depois do Pentecoste",
+        WS,
+        "Sermão da Dominga XIX depois do Pentecoste",
+    ),
+}
 
 
 def html_to_text(raw: str) -> str:
