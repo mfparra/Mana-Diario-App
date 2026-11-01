@@ -17,7 +17,7 @@ Premium personalizado: Fase 9. Publicação: Fase 10.
   com SHA-256 e script de download. Aceite: zip confere com o hash; 66 livros; licença registrada (B2).
 - [x] **0.2 Ler o llm-server** — feito no planejamento (2026-10-31), ver `LLM_SERVER.md` §2.
   Conferir se o `.env` dele mudou antes da Fase 3.
-- [ ] **0.3 Responder pendências bloqueantes** [manual] — P8/L5 (frase do dia e acervo de citações), L8 (revisão humana). S3 resolvida (D1).
+- [x] **0.3 Responder pendências bloqueantes** [manual] — P8/L5 e L8 respondidas em 2026-11-01; S3 resolvida (D1).
 - [x] **0.4 Inicializar repositório**: git, `.gitignore` (Android, Python, `.env`, keystores,
   `google-services.json`, `build/`), `infra/.env.example`, `.editorconfig`.
   Aceite: `git status` limpo após o primeiro commit; nenhum segredo versionado.
@@ -76,8 +76,9 @@ Dep.: 1.x, 2.x, 0.2
 - [ ] **3.2 Plano de versículos**: montar acervo próprio em `server/data/verse_plan.*` (≥ 366 referências,
   com tema e datas especiais; o agente propõe só **referências**, o texto vem da BLIVRE) + tabela `verse_plan`;
   regra de não repetição em 365 dias. Lista revisada pelo Marcos [manual]. Aceite: simulação de 2 anos sem repetição indevida; todas as refs existem na BLIVRE.
-- [ ] **3.3 Citações curadas** (depende de P8/L5): carregar o acervo curado próprio em `server/data/quotes.*`;
-  seleção por tags e janela de repetição.
+- [ ] **3.3 Citações curadas** (L5 ✅): montar o acervo de domínio público em `server/data/quotes.*` (texto, autor,
+  obra, localização, URL da fonte, idioma original, tradução do projeto?) + seleção por tags e janela de repetição.
+  Lista revisada pelo Marcos [manual] antes de produção.
   Aceite: teste de seleção determinística por data; nenhuma citação sem autor.
 - [x] **3.4 Candidatos de leitura complementar** (P9): fonte de referências cruzadas (OpenBible.info, conferir licença).
   Aceite: para 50 versículos do plano, ≥ 3 candidatos válidos cada.

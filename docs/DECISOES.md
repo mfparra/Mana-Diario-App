@@ -23,7 +23,7 @@ arquivo ou dado é herdado do site.
 | P5 | Leitor bíblico integrado, usável sozinho ou aberto ao tocar numa referência do estudo | ✅ | |
 | P6 | Datas especiais: Páscoa e móveis (ex.: Corpus Christi), Natal, Dia das Mães, Dia dos Pais | 🟡 | Calendário próprio: tabela de `CONTEUDO_E_LLM.md` §2. Colisões: litúrgicas antes das civis; véspera de Natal fora (2026-10-31) |
 | P7 | Acervo de versículos que dure mais de um ano | 🟡 | Acervo próprio em `server/data/verse_plan.*` (≥ 366 referências validadas na BLIVRE), revisado pelo Marcos na tarefa 3.2 |
-| P8 | **"Pequena frase"** = citação curada (caixa escura, com autor) | ❓ | Sem o banco do site, é preciso montar um acervo curado do zero (ver L5). Alternativa: frase-síntese gerada pela LLM, sem autor. Definir até a Fase 3 |
+| P8 | **"Pequena frase"** = citação curada (caixa escura, com autor) | ✅ | 2026-11-01, Marcos. Sem citação adequada → `quote: null` (o app esconde a caixa) |
 | P9 | **Versículo complementar**: servidor oferece candidatos (referências cruzadas) e a LLM escolhe um; servidor valida | 🟡 | Fonte: referências cruzadas do **OpenBible.info**, licença **CC BY** confirmada em 2026-10-31 (`tools/biblia/LICENCA_REFERENCIAS.md`). Até 8 candidatos, votos ≥ 3, máx. 3 por livro, sem sobrepor a passagem-base |
 | P10 | Seções extras geradas: "aplicação prática" e "oração" curta | 🟡 | |
 | P11 | Funções extras do app: histórico, favoritos, compartilhar como imagem, notificação diária em horário escolhido | 🟡 | Widget, áudio (TTS) e planos de leitura ficam para a fase futura |
@@ -52,10 +52,10 @@ arquivo ou dado é herdado do site.
 | L10 | JSON robusto sem depender de `response_format` (Gemma 4 devolve vazio com `json_object`) | 🟡 | `LLM_JSON_MODE` configurável + extração/validação + nova tentativa |
 | L11 | Lotes de geração de madrugada, 1 requisição por vez, para não travar o BuscaPalavras | 🟡 | |
 | L4 | Prompts, tom teológico e regras de conteúdo | 🟡 | Prompts próprios a partir de `CONTEUDO_E_LLM.md` §6; amostras revisadas pelo Marcos (3.6) |
-| L5 | Banco de citações curadas e regras de uso (repetição, autores) | ❓ | Montar do zero. Quem fornece as citações (com autor e fonte verificáveis)? Ligado a P8. Definir até a Fase 3 |
+| L5 | Acervo de citações: **autores cristãos em domínio público**, trechos copiados de textos-fonte reais com obra/localização/URL registrados; **revisão do Marcos** antes de produção | ✅ | 2026-11-01, Marcos. Preferir autores que escreveram em português (ex.: Pe. Antônio Vieira). Tradução de original em domínio público só marcada como "tradução do projeto", com o original guardado ao lado; ortografia atualizada é registrada. Nunca frase "de memória" |
 | L6 | Saída da LLM sempre em JSON validado por schema; até 3 tentativas; depois fallback | 🟡 | |
 | L7 | Estudo geral pré-gerado com 7 dias de antecedência pelo worker | 🟡 | Dá margem para falhas do llm-server |
-| L8 | Estudos publicados automaticamente após validação (sem revisão humana obrigatória) | ❓ | Alternativa: fila de aprovação no painel admin. Definir até a Fase 3 |
+| L8 | Estudos publicados automaticamente após validação (sem revisão humana obrigatória) | ✅ | 2026-11-01, Marcos. Correção pelo admin (despublicar/regenerar); pool de reserva cobre falhas |
 
 ## Servidor
 
