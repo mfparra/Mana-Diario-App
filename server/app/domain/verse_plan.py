@@ -122,7 +122,7 @@ def choose_verse(
     for step in range(1, len(common) + 1):
         e = common[(last_common + step) % len(common)]
         used = last_use.get(e.ref)
-        if used is None or used <= limit:
+        if used is None or used < limit:  # usado há ≤ 365 dias fica de fora
             return Choice(e.ref, None, e.theme)
     # plano menor que a janela: repete o mais antigo
     e = min(common, key=lambda x: last_use.get(x.ref, dt.date.min))

@@ -33,8 +33,9 @@ CHECK_CANDIDATES = ("Jo 10.11", "Is 40.11", "Ez 34.11-12", "1Pe 5.4", "Hb 13.20"
 async def load_data(settings: Settings) -> int:
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+    from app.domain.quotes import load_quotes
     from app.domain.verse_plan import load_plan, plan_issues
-    from app.services.content_data import sync_verse_plan
+    from app.services.content_data import sync_quotes, sync_verse_plan
 
     if not settings.database_url:
         print("DATABASE_URL não configurada", file=sys.stderr)
@@ -43,14 +44,17 @@ async def load_data(settings: Settings) -> int:
     if issues := plan_issues(plan):
         print("plano de versículos com problemas:\n" + "\n".join(issues), file=sys.stderr)
         return 1
+    quotes = load_quotes()  # recusa citação sem fonte literal
     engine = create_async_engine(settings.database_url)
     try:
         async with async_sessionmaker(engine)() as session:
             r = await sync_verse_plan(session, plan)
+            rq = await sync_quotes(session, quotes)
     finally:
         await engine.dispose()
-    print(f"plano de versículos: {len(plan)} entradas ({r.inserted} novas, {r.updated} alteradas, "
-          f"{r.deactivated} desativadas)", file=sys.stderr)  # fmt: skip
+    for nome, total, rep in (("plano de versículos", len(plan), r), ("citações", len(quotes), rq)):
+        print(f"{nome}: {total} entradas ({rep.inserted} novas, {rep.updated} alteradas, "
+              f"{rep.deactivated} desativadas)", file=sys.stderr)  # fmt: skip
     return 0
 
 

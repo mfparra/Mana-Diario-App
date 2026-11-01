@@ -10,7 +10,8 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import VersePlan
+from app.db.models import CuratedQuote, VersePlan
+from app.domain.quotes import Quote
 from app.domain.verse_plan import PlanEntry
 
 
@@ -46,3 +47,25 @@ async def sync_verse_plan(session: AsyncSession, entries: Sequence[PlanEntry]) -
 async def load_active_plan(session: AsyncSession) -> list[PlanEntry]:
     rows = await session.scalars(select(VersePlan).where(VersePlan.active).order_by(VersePlan.position))
     return [PlanEntry(r.verse_ref, r.theme or "", r.special_day) for r in rows]
+
+
+async def sync_quotes(session: AsyncSession, quotes: Sequence[Quote]) -> SyncReport:
+    report = SyncReport()
+    existing = {r.code: r for r in (await session.scalars(select(CuratedQuote))).all()}
+    for q in quotes:
+        row = existing.get(q.id)
+        values = {"text": q.text, "author": q.author, "source": q.work, "tags": list(q.tags), "active": True}
+        if row is None:
+            session.add(CuratedQuote(code=q.id, **values))
+            report.inserted += 1
+        elif any(getattr(row, k) != v for k, v in values.items()):
+            for k, v in values.items():
+                setattr(row, k, v)
+            report.updated += 1
+    wanted = {q.id for q in quotes}
+    for code, row in existing.items():
+        if code not in wanted and row.active:
+            row.active = False
+            report.deactivated += 1
+    await session.commit()
+    return report

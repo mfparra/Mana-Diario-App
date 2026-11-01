@@ -87,9 +87,10 @@ class CuratedQuote(Base):
     __tablename__ = "curated_quotes"
 
     id: Mapped[int] = mapped_column(Integer, Identity(), primary_key=True)
+    code: Mapped[str] = mapped_column(String(20), nullable=False, unique=True)  # id estável do quotes.csv
     text: Mapped[str] = mapped_column(Text, nullable=False)
     author: Mapped[str] = mapped_column(String(200), nullable=False)
-    source: Mapped[str | None] = mapped_column(Text)
+    source: Mapped[str | None] = mapped_column(Text)  # obra
     tags: Mapped[list[str]] = mapped_column(ARRAY(String(50)), nullable=False, server_default="{}")
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=sql_text("true"))
     last_used_at: Mapped[dt.date | None] = mapped_column(Date)

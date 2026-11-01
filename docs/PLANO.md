@@ -77,9 +77,12 @@ Dep.: 1.x, 2.x, 0.2
   com tema e datas especiais; o agente propõe só **referências**, o texto vem da BLIVRE) + tabela `verse_plan`;
   regra de não repetição em 365 dias. Lista revisada pelo Marcos [manual].
 - [ ] **3.2b Revisar `server/data/verse_plan.csv`** [manual] — Marcos confere temas e escolhas (403 + 32 refs). Aceite: simulação de 2 anos sem repetição indevida; todas as refs existem na BLIVRE.
-- [ ] **3.3 Citações curadas** (L5 ✅): montar o acervo de domínio público em `server/data/quotes.*` (texto, autor,
+- [x] **3.3 Citações curadas** (L5 ✅): montar o acervo de domínio público em `server/data/quotes.*` (texto, autor,
   obra, localização, URL da fonte, idioma original, tradução do projeto?) + seleção por tags e janela de repetição.
   Lista revisada pelo Marcos [manual] antes de produção.
+- [ ] **3.3b Ampliar e revisar o acervo de citações** — hoje 23 (Pe. Antônio Vieira, 4 sermões). Meta ≥ 180
+  (outros sermões de Vieira, Manuel Bernardes; traduções do projeto de Agostinho/Spurgeon só com original ao lado).
+  Revisão do Marcos [manual] antes do teste fechado.
   Aceite: teste de seleção determinística por data; nenhuma citação sem autor.
 - [x] **3.4 Candidatos de leitura complementar** (P9): fonte de referências cruzadas (OpenBible.info, conferir licença).
   Aceite: para 50 versículos do plano, ≥ 3 candidatos válidos cada.

@@ -53,8 +53,14 @@ Testes obrigatórios: Páscoa de 2025 (20/04),
 
 ## 3. Citações curadas
 
-- Acervo próprio em `server/data/quotes.*`, carregado na tabela `curated_quotes` (origem pendente — DECISOES P8/L5).
-- Seleção: tags compatíveis com o tema/palavras-chave do versículo; não repetir nos últimos N dias (N = 180, 🟡).
+- Acervo próprio em `server/data/quotes.csv` (DECISOES L5: autores cristãos em **domínio público**), carregado na
+  tabela `curated_quotes` por `python -m app.cli carregar-dados`. Textos-fonte baixados (com URL e revisão) em
+  `server/data/citacoes_fontes/` por `tools/citacoes/baixar_fontes.py`.
+- Cada citação tem `original` (trecho **literal** da fonte — conferido no carregamento e em teste) e `texto`
+  (exibição: só grafia atualizada, mesmas palavras — conferido palavra a palavra).
+- Seleção: temas da citação compatíveis com o tema do versículo do dia; não repetir uma citação usada há ≤ N dias,
+  com N = min(180, 80% do acervo); sem tema compatível → qualquer livre; nenhuma livre → `quote: null`.
+  Determinística por data.
 - O texto é exibido **exatamente** como cadastrado. A LLM não reescreve nem cria citações.
 - Antes de importar, conferir se cada citação tem autor e origem registrados (direitos de uso).
 
