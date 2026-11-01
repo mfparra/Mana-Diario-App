@@ -21,6 +21,10 @@ class InvalidGoogleToken(Exception):
     pass
 
 
+class GoogleLoginNotConfigured(RuntimeError):
+    """GOOGLE_WEB_CLIENT_ID ausente (configuração do servidor, não erro do usuário)."""
+
+
 @dataclass(frozen=True)
 class GoogleIdentity:
     sub: str
@@ -48,7 +52,7 @@ class GoogleIdTokenVerifier:
 
     def _verify_sync(self, token: str) -> GoogleIdentity:
         if not self.client_id:
-            raise RuntimeError("GOOGLE_WEB_CLIENT_ID não configurado")
+            raise GoogleLoginNotConfigured("GOOGLE_WEB_CLIENT_ID não configurado")
         try:
             key = self._resolve(token)
             claims = jwt.decode(

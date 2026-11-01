@@ -155,3 +155,12 @@ async def test_login_valida_entrada(api):
     client, _ = api
     r = await client.post("/v1/auth/google", json={"id_token": "x"})
     assert r.status_code == 422
+
+
+async def test_login_sem_client_id_configurado_responde_503(api, make_google_token):
+    client, _ = api
+    client_app = client._transport.app  # type: ignore[attr-defined]
+    client_app.dependency_overrides[get_google_verifier] = lambda: GoogleIdTokenVerifier(None)
+    r = await client.post("/v1/auth/google", json={"id_token": make_google_token()})
+    assert r.status_code == 503
+    assert r.json()["error"]["code"] == "unavailable"

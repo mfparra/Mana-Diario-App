@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, Response
@@ -9,8 +10,9 @@ from app.core.errors import ApiError
 from app.core.ratelimit import AUTH, limit_by_ip
 from app.db.session import get_session
 from app.services.auth import AuthService, InvalidRefreshToken
-from app.services.google_id import GoogleIdTokenVerifier, InvalidGoogleToken
+from app.services.google_id import GoogleIdTokenVerifier, GoogleLoginNotConfigured, InvalidGoogleToken
 
+log = logging.getLogger("app.auth")
 router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(limit_by_ip(AUTH))])
 
 
@@ -58,6 +60,9 @@ async def login_google(body: GoogleLoginIn, service: AuthService = Depends(get_a
         result = await service.login_google(body.id_token, body.device_label)
     except InvalidGoogleToken:
         raise _unauthorized() from None
+    except GoogleLoginNotConfigured:
+        log.error("login Google indisponível: GOOGLE_WEB_CLIENT_ID não configurado")
+        raise ApiError("unavailable", "Login temporariamente indisponível.", 503) from None
     t, u = result.tokens, result.user
     return LoginOut(
         access_token=t.access_token,
