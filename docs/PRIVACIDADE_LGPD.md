@@ -56,7 +56,7 @@ e exibir mensagem acolhedora com o **CVV — 188** (ligação gratuita, 24 h) e 
 Ver `CONTEUDO_E_LLM.md` §7.
 
 ## 5. Documentos públicos necessários
-- Política de privacidade (URL pública — pode ficar no site Maná Diário).
+- Política de privacidade (URL pública no domínio do desenvolvedor — DECISOES S7).
 - Termos de uso (assinatura, cancelamento pela Play Store, conteúdo gerado por IA).
 - Aviso no app: "Os estudos são gerados com auxílio de inteligência artificial a partir de versículos
   da Bíblia Livre" (transparência).

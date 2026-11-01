@@ -1,8 +1,7 @@
 # Conteúdo e LLM
 
-> Este documento define o **contrato** do app e prevalece sobre o site. Do site Maná Diário se
-> reaproveita apenas o que aqui não estiver definido (ex.: banco de versículos, citações curadas,
-> tom dos prompts) — registrar em `DECISOES.md`. Particularidades de modelo LLM ficam em `LLM_SERVER.md`.
+> Este documento define o **contrato** do conteúdo do app. O app é independente do site web (DECISOES D1):
+> acervo de versículos, citações, calendário e prompts são próprios. Particularidades de modelo LLM ficam em `LLM_SERVER.md`.
 
 ## 1. Origem de cada parte do estudo
 
@@ -23,7 +22,7 @@
 
 Ordem de prioridade para a data D:
 1. **Data especial** (calendário abaixo) → versículo do conjunto daquela data.
-2. **Plano de versículos** (banco herdado do site, ≥ 366 entradas) → próximo versículo não usado
+2. **Plano de versículos** (acervo próprio em `server/data/`, ≥ 366 entradas) → próximo versículo não usado
    nos últimos 365 dias.
 3. Registrar `verse_ref` em `studies` para evitar repetição.
 
@@ -41,13 +40,13 @@ Ordem de prioridade para a data D:
 | `pais` | 2º domingo de agosto (Brasil) |
 | `natal` | 25/12 (opcional: 24/12 véspera) |
 
-O conjunto final de datas é o do site (🔁). Testes obrigatórios: Páscoa de 2025 (20/04),
+Testes obrigatórios: Páscoa de 2025 (20/04),
 2026 (05/04), 2027 (28/03), 2030 (21/04); Corpus Christi 2026 = 04/06.
 
 ## 3. Citações curadas
 
-- Importadas do banco do site para `server/data/quotes.*` e para a tabela `curated_quotes`.
-- Seleção: tags compatíveis com o tema/palavras-chave do versículo; não repetir nos últimos N dias (herdar N do site).
+- Acervo próprio em `server/data/quotes.*`, carregado na tabela `curated_quotes` (origem pendente — DECISOES P8/L5).
+- Seleção: tags compatíveis com o tema/palavras-chave do versículo; não repetir nos últimos N dias (N = 180, 🟡).
 - O texto é exibido **exatamente** como cadastrado. A LLM não reescreve nem cria citações.
 - Antes de importar, conferir se cada citação tem autor e origem registrados (direitos de uso).
 
@@ -66,7 +65,7 @@ resolve_verse(D) → load_blivre_text(ref) → pick_quote(D, tema)
 - O corpo **não pode conter citação bíblica entre aspas** com texto (evita versículo "inventado");
   referências soltas são permitidas e viram links no app.
 - Tamanhos dentro dos limites; palavras-chave normalizadas (minúsculas, sem acento duplicado, sem `#`).
-- Lista de termos proibidos/sensíveis (herdar do site) e checagem de idioma pt-BR.
+- Lista própria de termos proibidos/sensíveis (`server/data/`) e checagem de idioma pt-BR.
 - Falhou → nova tentativa com a mensagem de erro anexada ao prompt (máx. 3) → `failed`.
 
 ### Fallback de disponibilidade
@@ -95,7 +94,7 @@ Orçamento com o llm-server atual (contexto 4096): prompt ≤ 1.800 tokens; saí
 ## 6. Prompts
 
 - Versionados em `server/prompts/` (`study_v1.md`, `personal_v1.md`), com `prompt_version` gravado em cada estudo.
-- Estrutura: **sistema** (papel, tom, regras teológicas e de formato — herdar do site) +
+- Estrutura: **sistema** (papel, tom, regras teológicas e de formato) +
   **usuário** (data, data especial, referência + texto BLIVRE, tema, candidatos numerados, limites).
 - Tom: pastoral, acolhedor, em português do Brasil, segunda pessoa ("você"), sem jargão,
   sem prometer curas/prosperidade, sem posicionamento político-partidário, sem atacar denominações.

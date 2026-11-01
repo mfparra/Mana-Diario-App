@@ -1,6 +1,6 @@
 # Design
 
-Referências: `assets/logo-mana.svg` (logo oficial, igual ao site) e `assets/referencia-design.png`
+Referências: `assets/logo-mana.svg` (logo oficial) e `assets/referencia-design.png`
 (layout de devocional impresso usado como inspiração). A referência é de **estrutura e clima visual**
 — não copiar textos, nomes ou citações dela.
 
@@ -45,7 +45,7 @@ Temas: **Claro** (padrão), **Sépia** (leitor; fundo `paperAlt`) e **Escuro**. 
 | Corpo do estudo e leitor | Literata Regular / Italic | Feita para leitura longa (OFL) |
 | UI (botões, navegação) | Nunito SemiBold | |
 
-Fontes embarcadas em `res/font` (funciona offline). Confirmar com as fontes do site (🔁).
+Fontes embarcadas em `res/font` (funciona offline).
 Tamanho do texto ajustável (4 passos) — aplicado ao estudo e ao leitor; respeitar a escala do sistema.
 
 ## 4. Logo e ícone

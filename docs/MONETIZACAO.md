@@ -13,8 +13,7 @@
   **Sem intersticiais e sem anúncios no leitor bíblico.**
 - Debug sempre com **IDs de teste** do Google; IDs reais via `local.properties` → `BuildConfig`/`manifestPlaceholders`.
 - Registrar dispositivos de teste. Nunca clicar nos próprios anúncios reais.
-- `app-ads.txt` publicado no domínio do desenvolvedor informado na Play Console
-  (pode ser o domínio do site Maná Diário).
+- `app-ads.txt` publicado no domínio do desenvolvedor informado na Play Console (DECISOES S7).
 - Classificação de conteúdo dos anúncios: limitar a categorias adequadas (ex.: bloquear apostas,
   namoro, conteúdo sexual) no painel do AdMob — [manual].
 - `AdsGate`: componente único que decide se mostra anúncio (`!isPremium && consentOk`). Premium nunca
