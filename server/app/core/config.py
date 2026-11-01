@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     llm_sends_personal_data: bool = True
     llm_health_timeout_s: float = 3
 
+    # Worker (PLANO 3.8)
+    worker_batch_window: str = "01:00-05:00"  # horário de São Paulo
+    worker_horizon_days: int = 7
+    worker_tick_s: float = 60
+
     @field_validator("llm_extra_body", mode="before")
     @classmethod
     def _parse_extra_body(cls, v: Any) -> Any:

@@ -151,11 +151,13 @@ class NotesService:
         ]
 
     async def purge_tombstones(self, now: dt.datetime | None = None) -> int:
-        """Apaga tombstones com mais de 30 dias (rodado pelo worker)."""
-        now = now or dt.datetime.now(dt.UTC)
-        limit = now - dt.timedelta(days=TOMBSTONE_RETENTION_DAYS)
-        res = await self.session.execute(
-            delete(Note).where(Note.deleted_at.is_not(None), Note.deleted_at < limit)
-        )
-        await self.session.commit()
-        return res.rowcount or 0
+        return await purge_tombstones(self.session, now)
+
+
+async def purge_tombstones(session: AsyncSession, now: dt.datetime | None = None) -> int:
+    """Apaga tombstones com mais de 30 dias (rodado pelo worker; não precisa da chave)."""
+    now = now or dt.datetime.now(dt.UTC)
+    limit = now - dt.timedelta(days=TOMBSTONE_RETENTION_DAYS)
+    res = await session.execute(delete(Note).where(Note.deleted_at.is_not(None), Note.deleted_at < limit))
+    await session.commit()
+    return res.rowcount or 0
