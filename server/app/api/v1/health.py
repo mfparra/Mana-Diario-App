@@ -5,8 +5,10 @@ from pydantic import BaseModel
 
 from app.core.config import Settings, get_settings
 from app.db.session import check_db, get_engine
+from app.domain.calendar import today
 from app.llm.health import check_llm
 from app.services.health import HealthService
+from app.services.studies import is_published
 
 router = APIRouter(tags=["infra"])
 
@@ -23,8 +25,7 @@ def get_health_service(settings: Settings = Depends(get_settings)) -> HealthServ
         return await check_db(get_engine())
 
     async def today_published() -> bool:
-        # Substituído pela consulta a `studies` na tarefa 4.4.
-        return False
+        return await is_published(get_engine(), today())
 
     return HealthService(db_check, lambda: check_llm(settings), today_published)
 

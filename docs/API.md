@@ -64,14 +64,21 @@ Endpoints protegidos sem `Authorization: Bearer <access>` válido → 401 `unaut
 
 ## Estudos
 
+Todos exigem `Authorization: Bearer`. "Hoje" do servidor = data em `America/Sao_Paulo`; aceita-se até **D+1**
+(aparelhos em fusos a leste).
+
 ### `GET /studies/today?tz=America/Sao_Paulo`
-Retorna o estudo publicado do dia. Suporta `ETag` / `If-None-Match` (304).
+Retorna o estudo publicado do dia no fuso `tz` do aparelho (IANA; padrão: fuso do servidor), limitado a D+1.
+Respostas com `ETag` (hash do payload) e `Cache-Control: private, max-age=300`; `If-None-Match` igual → 304 sem corpo.
+`tz` inválido → 422.
 
 ### `GET /studies/{date}`
-Data ≤ hoje (+1 dia de tolerância de fuso). Futuro além disso → 422 `future_date`.
+Data ≤ hoje + 1. Futuro além disso → 422 `future_date` com `details.max_date`. Sem estudo publicado → 404
+`study_not_available`. Mesmo esquema de `ETag`/304.
 
 ### `GET /studies?from=AAAA-MM-DD&to=AAAA-MM-DD`
-Lista resumida para o histórico (máx. 62 dias por chamada):
+Lista resumida para o histórico (máx. 62 dias por chamada, `from ≤ to`, só publicados, mais recente primeiro,
+nada além de D+1):
 ```json
 { "items": [ { "date": "2026-11-01", "title": "Supere", "verse_ref": "PSA 139:14", "keywords": ["lealdade"] } ] }
 ```
